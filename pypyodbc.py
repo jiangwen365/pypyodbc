@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.2'
+version = '1.0.3'
 lowercase=True
 
 DEBUG = 0
