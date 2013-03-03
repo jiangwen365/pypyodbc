@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name='pypyodbc',
-    version='1.0.2',
+    version='1.0.3',
     description='A Pure Python ctypes ODBC module',
     author='jiangwen365',
     author_email='jiangwen365@gmail.com',
