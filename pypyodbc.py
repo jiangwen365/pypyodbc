@@ -1843,7 +1843,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_tableType = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,tableType)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLTablesW
         else:
             string_p = ctypes.c_char_p
@@ -1887,7 +1887,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_column = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,column)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -1928,7 +1928,7 @@ class Cursor:
         l_catalog = l_schema = l_table = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLPrimaryKeysW
         else:
             string_p = ctypes.c_char_p
@@ -1967,7 +1967,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_foreignTable = l_foreignCatalog = l_foreignSchema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,foreignTable,foreignCatalog,foreignSchema)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLForeignKeysW
         else:
             string_p = ctypes.c_char_p
@@ -2013,7 +2013,7 @@ class Cursor:
     def procedurecolumns(self, procedure=None, catalog=None, schema=None, column=None):
         l_catalog = l_schema = l_procedure = l_column = 0
         if unicode in [type(x) for x in (procedure, catalog, schema,column)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLProcedureColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -2053,7 +2053,7 @@ class Cursor:
         l_catalog = l_schema = l_procedure = 0
         
         if unicode in [type(x) for x in (procedure, catalog, schema)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLProceduresW
         else:
             string_p = ctypes.c_char_p
@@ -2090,7 +2090,7 @@ class Cursor:
         l_table = l_catalog = l_schema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = ctypes.c_wchar_p
+            string_p = lambda x:wchar_type(u16_enc(x))
             API_f = ODBC_API.SQLStatisticsW
         else:
             string_p = ctypes.c_char_p
