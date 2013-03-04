@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.3'
+version = '1.0.4'
 lowercase=True
 
 DEBUG = 0
@@ -991,7 +991,7 @@ SQLBindParameter = ODBC_API.SQLBindParameter
 def ctrl_err(ht, h, val_ret):
     """Classify type of ODBC error from (type of handle, handle, return value)
     , and raise with a list"""
-    state = create_buffer_u(5)
+    state = create_buffer_u(25)
     NativeError = ctypes.c_int()
     Message = create_buffer_u(1024*10)
     Buffer_len = ctypes.c_short()
