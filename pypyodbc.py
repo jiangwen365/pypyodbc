@@ -56,9 +56,6 @@ if not hasattr(ctypes, 'c_ssize_t'):
         ctypes.c_ssize_t = ctypes.c_longlong
 
 
-
-
-
 lock = threading.Lock()
 shared_env_h = None
 SQLWCHAR_SIZE = ctypes.sizeof(ctypes.c_wchar)
@@ -537,6 +534,9 @@ if sys.platform not in ('win32','cli'):
         raise OdbcLibraryError('Using narrow Python build with ODBC library '
             'expecting wide unicode is not supported.')
 
+bytearray_cvt = bytearray
+if sys.platform == 'cli':
+    bytearray_cvt = lambda x: bytearray(buffer(x))
 
 
 def dttm_cvt(x):
@@ -583,9 +583,9 @@ SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CH
 SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30     ),
 SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048   ),
 SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500  ),
-SQL_BINARY          : (bytearray,           bytearray,                  SQL_C_BINARY,       create_buffer,      5120   ),
-SQL_VARBINARY       : (bytearray,           bytearray,                  SQL_C_BINARY,       create_buffer,      5120   ),
-SQL_LONGVARBINARY   : (bytearray,           bytearray,                  SQL_C_BINARY,       create_buffer,      20500  ),
+SQL_BINARY          : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_VARBINARY       : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      20500  ),
 SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150    ),
 SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150    ),
 SQL_BIT             : (bool,                lambda x:x=='1',            SQL_C_CHAR,         create_buffer,      2      ),
@@ -597,7 +597,7 @@ SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CH
 SQL_TYPE_TIME       : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20     ),
 SQL_TYPE_TIMESTAMP  : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30      ), 
 SQL_SS_VARIANT      : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048   ), 
-SQL_SS_UDT          : (bytearray,           bytearray,                  SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_SS_UDT          : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
 }
 
 
