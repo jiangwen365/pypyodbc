@@ -505,8 +505,8 @@ else:
 
 create_buffer_u = ctypes.create_unicode_buffer
 create_buffer = ctypes.create_string_buffer
-wchar_type = ctypes.c_wchar_p
-u16_enc = lambda s: s
+wchar_pointer = ctypes.c_wchar_p
+ucs2_buf = lambda s: s
 from_buffer_u = lambda buffer: buffer.value
 
 # This is the common case on Linux, which uses wide Python build together with
@@ -516,9 +516,9 @@ if sys.platform not in ('win32','cli'):
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
         create_buffer_u = create_buffer
-        wchar_type = ctypes.c_char_p
+        wchar_pointer = ctypes.c_char_p
 
-        def u16_enc(s):
+        def ucs2_buf(s):
             return s.encode('UTF-16LE')
 
         def from_buffer_u(buffer):
@@ -957,7 +957,7 @@ def to_wchar(argtypes):
         result = []
         for x in argtypes:
             if x == ctypes.c_char_p:
-                result.append(wchar_type)
+                result.append(wchar_pointer)
             else:
                 result.append(x)
         return result
@@ -1026,7 +1026,7 @@ def ctrl_err(ht, h, val_ret):
             #The handle passed is an invalid handle
             raise ProgrammingError('', 'SQL_INVALID_HANDLE')
         elif ret == SQL_SUCCESS:
-            err_list.append((state.value, Message.value, NativeError.value))
+            err_list.append((from_buffer_u(state), from_buffer_u(Message), NativeError.value))
             number_errors += 1
 
             
@@ -1271,7 +1271,7 @@ class Cursor:
                     c_char_buf = param_val
                     c_buf_len = len(c_char_buf)
                 elif isinstance(param_val, unicode):
-                    c_char_buf = u16_enc(param_val)
+                    c_char_buf = ucs2_buf(param_val)
                     c_buf_len = len(c_char_buf)
                 elif isinstance(param_val, (bytearray, buffer)):
                     c_char_buf = str(param_val)
@@ -1321,7 +1321,7 @@ class Cursor:
     def prepare(self, query_string):
         """prepare a query"""
         if type(query_string) == unicode:
-            c_query_string = wchar_type(u16_enc(query_string))
+            c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self._stmt_h, c_query_string, len(query_string))
         else:
             c_query_string = ctypes.c_char_p(query_string)
@@ -1334,7 +1334,7 @@ class Cursor:
     def execdirect(self, query_string):
         """Execute a query directly"""
         if type(query_string) == unicode:
-            c_query_string = wchar_type(u16_enc(query_string))
+            c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLExecDirectW(self._stmt_h, c_query_string, len(query_string))
         else:
             c_query_string = ctypes.c_char_p(query_string)
@@ -1844,7 +1844,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_tableType = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,tableType)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLTablesW
         else:
             string_p = ctypes.c_char_p
@@ -1888,7 +1888,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_column = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,column)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -1929,7 +1929,7 @@ class Cursor:
         l_catalog = l_schema = l_table = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLPrimaryKeysW
         else:
             string_p = ctypes.c_char_p
@@ -1968,7 +1968,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_foreignTable = l_foreignCatalog = l_foreignSchema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,foreignTable,foreignCatalog,foreignSchema)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLForeignKeysW
         else:
             string_p = ctypes.c_char_p
@@ -2014,7 +2014,7 @@ class Cursor:
     def procedurecolumns(self, procedure=None, catalog=None, schema=None, column=None):
         l_catalog = l_schema = l_procedure = l_column = 0
         if unicode in [type(x) for x in (procedure, catalog, schema,column)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLProcedureColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -2054,7 +2054,7 @@ class Cursor:
         l_catalog = l_schema = l_procedure = 0
         
         if unicode in [type(x) for x in (procedure, catalog, schema)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLProceduresW
         else:
             string_p = ctypes.c_char_p
@@ -2091,7 +2091,7 @@ class Cursor:
         l_table = l_catalog = l_schema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = lambda x:wchar_type(u16_enc(x))
+            string_p = lambda x:wchar_pointer(ucs2_buf(x))
             API_f = ODBC_API.SQLStatisticsW
         else:
             string_p = ctypes.c_char_p
@@ -2256,7 +2256,7 @@ class Connection:
         
         
         if not ansi:
-            c_connectString = wchar_type(u16_enc(self.connectString))
+            c_connectString = wchar_pointer(ucs2_buf(self.connectString))
             odbc_func = ODBC_API.SQLDriverConnectW
         else:
             c_connectString = ctypes.c_char_p(self.connectString)
