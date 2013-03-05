@@ -505,6 +505,16 @@ create_buffer = ctypes.create_string_buffer
 wchar_pointer = ctypes.c_wchar_p
 ucs2_buf = lambda s: s
 from_buffer_u = lambda buffer: buffer.value
+def ucs2_dec(buffer):
+    i = 0
+    uchars = []
+    while True:
+        uchar = buffer.raw[i:i + 2].decode('utf_16')
+        if uchar == unicode('\x00'):
+            break
+        uchars.append(uchar)
+        i += 2
+    return ''.join(uchars)
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
@@ -516,18 +526,10 @@ if sys.platform not in ('win32','cli'):
         wchar_pointer = ctypes.c_char_p
 
         def ucs2_buf(s):
-            return s.encode('UTF-16LE')
+            return s.encode('utf_16_le')
 
-        def from_buffer_u(buffer):
-            i = 0
-            uchars = []
-            while True:
-                uchar = buffer.raw[i:i + 2].decode('UTF-16')
-                if uchar == unicode('\x00'):
-                    break
-                uchars.append(uchar)
-                i += 2
-            return ''.join(uchars)
+        from_buffer_u = ucs2_dec
+
 
     # Exoteric case, don't really care.
     elif UNICODE_SIZE < SQLWCHAR_SIZE:
@@ -647,6 +649,7 @@ funcs_with_ret = [
     "SQLGetDiagRec",
     "SQLGetDiagRecW",
     "SQLGetInfo",
+    "SQLGetInfoW",
     "SQLGetTypeInfo",
     "SQLMoreResults",
     "SQLNumParams",
@@ -978,6 +981,7 @@ ODBC_API.SQLProceduresW.argtypes = to_wchar(ODBC_API.SQLProcedures.argtypes)
 ODBC_API.SQLStatisticsW.argtypes = to_wchar(ODBC_API.SQLStatistics.argtypes)
 ODBC_API.SQLTablesW.argtypes = to_wchar(ODBC_API.SQLTables.argtypes)
 ODBC_API.SQLGetDiagRecW.argtypes = to_wchar(ODBC_API.SQLGetDiagRec.argtypes)
+ODBC_API.SQLGetInfoW.argtypes = to_wchar(ODBC_API.SQLGetInfo.argtypes)
 
 # Set the alias for the ctypes functions for beter code readbility or performance.
 ADDR = ctypes.byref
@@ -2201,6 +2205,7 @@ class Connection:
         """Init variables and connect to the engine"""
         self.connected = 0
         self.type_size_dic = {}
+        self.ansi = False
         self.unicode_results = False
         self.dbc_h = ctypes.c_void_p()
         self.autocommit = autocommit
@@ -2254,7 +2259,7 @@ class Connection:
         # so it can be converted to a ctypes c_char array object 
 
         
-        
+        self.ansi = ansi
         if not ansi:
             c_connectString = wchar_pointer(ucs2_buf(self.connectString))
             odbc_func = ODBC_API.SQLDriverConnectW
@@ -2400,10 +2405,17 @@ class Connection:
             total_buf_len = 1000
             alloc_buffer = create_buffer(total_buf_len)
             used_buf_len = ctypes.c_short()
-            ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
+            if self.ansi:
+                API_f = ODBC_API.SQLGetInfo
+            else:
+                API_f = ODBC_API.SQLGetInfoW
+            ret = API_f(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
                     ADDR(used_buf_len))
             validate(ret, SQL_HANDLE_DBC, self.dbc_h)
-            result = alloc_buffer.value
+            if self.ansi:
+                result = alloc_buffer.value
+            else:
+                result = ucs2_dec(alloc_buffer)
             if aInfoTypes[infotype] == 'GI_YESNO':
                 if result[0] == 'Y':
                     result = True
