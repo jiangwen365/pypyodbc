@@ -147,29 +147,6 @@ SQL_C_DEFAULT = 99
 SQL_DESC_DISPLAY_SIZE = SQL_COLUMN_DISPLAY_SIZE
 
 
-def dttm_cvt(x):
-    if py_v3:
-        x = x.decode('ascii')
-    if x == '': return None
-    else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
-
-def tm_cvt(x):
-    if py_v3:
-        x = x.decode('ascii')
-    if x == '': return None
-    else: return datetime.time(int(x[0:2]),int(x[3:5]),int(x[6:8]),int(x[9:].ljust(6,'0')))
-
-def dt_cvt(x):
-    if py_v3:
-        x = x.decode('ascii')
-    if x == '': return None
-    else: return datetime.date(int(x[0:4]),int(x[5:7]),int(x[8:10]))
-
-def Decimal_cvt(x):
-    if py_v3:
-        x = x.decode('ascii')    
-    return Decimal(x)
-
 
 # Below defines The constants for sqlgetinfo method, and their coresponding return types
 SQL_QUALIFIER_LOCATION = 114
@@ -561,6 +538,30 @@ if sys.platform not in ('win32','cli'):
             'expecting wide unicode is not supported.')
 
 
+
+def dttm_cvt(x):
+    if py_v3:
+        x = x.decode('ascii')
+    if x == '': return None
+    else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+
+def tm_cvt(x):
+    if py_v3:
+        x = x.decode('ascii')
+    if x == '': return None
+    else: return datetime.time(int(x[0:2]),int(x[3:5]),int(x[6:8]),int(x[9:].ljust(6,'0')))
+
+def dt_cvt(x):
+    if py_v3:
+        x = x.decode('ascii')
+    if x == '': return None
+    else: return datetime.date(int(x[0:4]),int(x[5:7]),int(x[8:10]))
+
+def Decimal_cvt(x):
+    if py_v3:
+        x = x.decode('ascii')    
+    return Decimal(x)
+    
 # Below Datatype mappings referenced the document at
 # http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.help.sdk_12.5.1.aseodbc/html/aseodbc/CACFDIGH.htm
 
