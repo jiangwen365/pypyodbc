@@ -303,18 +303,16 @@ SQL_ALTER_TABLE : 'GI_UINTEGER',SQL_ASYNC_MODE : 'GI_UINTEGER',SQL_BATCH_ROW_COU
 SQL_BATCH_SUPPORT : 'GI_UINTEGER',SQL_BOOKMARK_PERSISTENCE : 'GI_UINTEGER',SQL_CATALOG_LOCATION : 'GI_USMALLINT',
 SQL_CATALOG_NAME : 'GI_YESNO',SQL_CATALOG_NAME_SEPARATOR : 'GI_STRING',SQL_CATALOG_TERM : 'GI_STRING',
 SQL_CATALOG_USAGE : 'GI_UINTEGER',SQL_COLLATION_SEQ : 'GI_STRING',SQL_COLUMN_ALIAS : 'GI_YESNO',
-SQL_CONCAT_NULL_BEHAVIOR : 'GI_USMALLINT',SQL_CONVERT_FUNCTIONS : 'GI_UINTEGER',
-SQL_CONVERT_VARCHAR : 'GI_UINTEGER',SQL_CORRELATION_NAME : 'GI_USMALLINT',
-SQL_CREATE_ASSERTION : 'GI_UINTEGER',SQL_CREATE_CHARACTER_SET : 'GI_UINTEGER',
+SQL_CONCAT_NULL_BEHAVIOR : 'GI_USMALLINT',SQL_CONVERT_FUNCTIONS : 'GI_UINTEGER',SQL_CONVERT_VARCHAR : 'GI_UINTEGER',
+SQL_CORRELATION_NAME : 'GI_USMALLINT',SQL_CREATE_ASSERTION : 'GI_UINTEGER',SQL_CREATE_CHARACTER_SET : 'GI_UINTEGER',
 SQL_CREATE_COLLATION : 'GI_UINTEGER',SQL_CREATE_DOMAIN : 'GI_UINTEGER',SQL_CREATE_SCHEMA : 'GI_UINTEGER',
 SQL_CREATE_TABLE : 'GI_UINTEGER',SQL_CREATE_TRANSLATION : 'GI_UINTEGER',SQL_CREATE_VIEW : 'GI_UINTEGER',
 SQL_CURSOR_COMMIT_BEHAVIOR : 'GI_USMALLINT',SQL_CURSOR_ROLLBACK_BEHAVIOR : 'GI_USMALLINT',SQL_DATABASE_NAME : 'GI_STRING',
 SQL_DATA_SOURCE_NAME : 'GI_STRING',SQL_DATA_SOURCE_READ_ONLY : 'GI_YESNO',SQL_DATETIME_LITERALS : 'GI_UINTEGER',
 SQL_DBMS_NAME : 'GI_STRING',SQL_DBMS_VER : 'GI_STRING',SQL_DDL_INDEX : 'GI_UINTEGER',
 SQL_DEFAULT_TXN_ISOLATION : 'GI_UINTEGER',SQL_DESCRIBE_PARAMETER : 'GI_YESNO',SQL_DM_VER : 'GI_STRING',
-SQL_DRIVER_NAME : 'GI_STRING',SQL_DRIVER_ODBC_VER : 'GI_STRING',SQL_DRIVER_VER : 'GI_STRING',
-SQL_DROP_ASSERTION : 'GI_UINTEGER',SQL_DROP_CHARACTER_SET : 'GI_UINTEGER',
-SQL_DROP_COLLATION : 'GI_UINTEGER',SQL_DROP_DOMAIN : 'GI_UINTEGER',
+SQL_DRIVER_NAME : 'GI_STRING',SQL_DRIVER_ODBC_VER : 'GI_STRING',SQL_DRIVER_VER : 'GI_STRING',SQL_DROP_ASSERTION : 'GI_UINTEGER',
+SQL_DROP_CHARACTER_SET : 'GI_UINTEGER', SQL_DROP_COLLATION : 'GI_UINTEGER',SQL_DROP_DOMAIN : 'GI_UINTEGER',
 SQL_DROP_SCHEMA : 'GI_UINTEGER',SQL_DROP_TABLE : 'GI_UINTEGER',SQL_DROP_TRANSLATION : 'GI_UINTEGER',
 SQL_DROP_VIEW : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
 SQL_EXPRESSIONS_IN_ORDERBY : 'GI_YESNO',SQL_FILE_USAGE : 'GI_USMALLINT',
@@ -400,7 +398,6 @@ class Warning(Exception):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-    
 
 class Error(Exception):
     def __init__(self, error_code, error_desc):
@@ -412,18 +409,15 @@ class InterfaceError(Error):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
 
-
 class DatabaseError(Error):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
     
 class InternalError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 
 class ProgrammingError(DatabaseError):
     def __init__(self, error_code, error_desc):
@@ -504,7 +498,6 @@ create_buffer_u = ctypes.create_unicode_buffer
 create_buffer = ctypes.create_string_buffer
 wchar_pointer = ctypes.c_wchar_p
 ucs2_buf = lambda s: s
-from_buffer_u = lambda buffer: buffer.value
 def ucs2_dec(buffer):
     i = 0
     uchars = []
@@ -515,6 +508,7 @@ def ucs2_dec(buffer):
         uchars.append(uchar)
         i += 2
     return ''.join(uchars)
+from_buffer_u = lambda buffer: buffer.value
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
@@ -530,16 +524,13 @@ if sys.platform not in ('win32','cli'):
 
         from_buffer_u = ucs2_dec
 
-
     # Exoteric case, don't really care.
     elif UNICODE_SIZE < SQLWCHAR_SIZE:
         raise OdbcLibraryError('Using narrow Python build with ODBC library '
             'expecting wide unicode is not supported.')
 
-bytearray_cvt = bytearray
-if sys.platform == 'cli':
-    bytearray_cvt = lambda x: bytearray(buffer(x))
-
+#################
+# Database value to Python data type mappings
 
 def dttm_cvt(x):
     if py_v3:
@@ -564,9 +555,12 @@ def Decimal_cvt(x):
         x = x.decode('ascii')    
     return Decimal(x)
     
+bytearray_cvt = bytearray
+if sys.platform == 'cli':
+    bytearray_cvt = lambda x: bytearray(buffer(x))
+    
 # Below Datatype mappings referenced the document at
 # http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.help.sdk_12.5.1.aseodbc/html/aseodbc/CACFDIGH.htm
-
 
 SQL_data_type_dict = { \
 #SQL Data TYPE        0.Python Data Type     1.Default Output Converter  2.Buffer Type     3.Buffer Allocator   4.Default Buffer Size
@@ -991,8 +985,6 @@ SQLBindParameter = ODBC_API.SQLBindParameter
 
 
 
-
-
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
     , and raise with a list"""
@@ -1334,9 +1326,7 @@ class Cursor:
     def _SQLExecute(self):
         ret = SQLExecute(self.stmt_h)
         if ret != SQL_SUCCESS:
-            check_success(self, ret)
-
-        
+            check_success(self, ret)        
 
             
     def prepare(self, query_string):
