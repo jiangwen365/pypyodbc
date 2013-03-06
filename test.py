@@ -18,7 +18,7 @@ def main():
             continue
         
         print 'Connecting database server with pypyodbc...'
-        conn = pypyodbc.connect(conn_string, unicode_results = True, readonly = False, timeout = 2)
+        conn = pypyodbc.connect(conn_string, ansi = False,  unicode_results = True, readonly = False, timeout = 2)
 
         print conn.getinfo(pypyodbc.SQL_SERVER_NAME)
         print conn.getinfo(pypyodbc.SQL_DATABASE_NAME)
