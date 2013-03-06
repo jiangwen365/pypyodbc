@@ -2417,7 +2417,7 @@ class Connection:
             else:
                 result = ucs2_dec(alloc_buffer)
             if aInfoTypes[infotype] == 'GI_YESNO':
-                if result[0] == 'Y':
+                if unicode(result[0]) == unicode('Y'):
                     result = True
                 else:
                     result = False
