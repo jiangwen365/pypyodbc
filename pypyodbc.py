@@ -970,8 +970,9 @@ ADDR = ctypes.byref
 SQLFetch = ODBC_API.SQLFetch
 SQLExecute = ODBC_API.SQLExecute
 SQLBindParameter = ODBC_API.SQLBindParameter
-
-
+# Set alias for beter code readbility or performance.
+NO_FREE_STATEMENT = 0
+FREE_STATEMENT = 1
 
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
@@ -1191,7 +1192,7 @@ class Cursor:
         If parameters are not provided, only th query sting, it would be executed directly 
         """
 
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
 
         if params:
             # If parameters exist, first prepare the query then executed with parameters
@@ -1797,7 +1798,7 @@ class Cursor:
             check_success(self, ret)
             
         if ret == SQL_NO_DATA:
-            self._free_results('FREE_STATEMENT')
+            self._free_results(FREE_STATEMENT)
             return False
         else:
             self._NumOfRows()
@@ -1806,12 +1807,12 @@ class Cursor:
         return True
     
     
-    def _free_results(self, free_statement):
+    def _free_results(self, free_statement = NO_FREE_STATEMENT):
         if not self.connection.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         
         self.description = None
-        if free_statement == 'FREE_STATEMENT':
+        if free_statement == FREE_STATEMENT:
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
             check_success(self, ret)
         else:
@@ -1867,7 +1868,7 @@ class Cursor:
             l_tableType = len(tableType)
             tableType = string_p(tableType)
         
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
         ret = API_f(self.stmt_h,
                                 catalog, l_catalog,
@@ -1908,7 +1909,7 @@ class Cursor:
             l_column = len(column)
             column = string_p(column)
             
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -1948,7 +1949,7 @@ class Cursor:
             l_table = len(table)
             table = string_p(table)
             
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -1992,7 +1993,7 @@ class Cursor:
             l_foreignSchema = len(foreignSchema)
             foreignSchema = string_p(foreignSchema)
         
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
         
         ret = API_f(self.stmt_h,
@@ -2034,7 +2035,7 @@ class Cursor:
             column = string_p(column)
             
         
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -2072,7 +2073,7 @@ class Cursor:
             procedure = string_p(procedure)
             
         
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -2116,7 +2117,7 @@ class Cursor:
         else:
             Reserved = SQL_ENSURE
         
-        self._free_results('FREE_STATEMENT')
+        self._free_results(FREE_STATEMENT)
         self.statement = None
         
         ret = API_f(self.stmt_h,
