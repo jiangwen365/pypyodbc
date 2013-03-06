@@ -392,58 +392,46 @@ class OdbcGenericError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
-
-
 class Warning(Exception):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class Error(Exception):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class InterfaceError(Error):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class DatabaseError(Error):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-    
 class InternalError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class ProgrammingError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class DataError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class IntegrityError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class NotSupportedError(Error):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 class OperationalError(DatabaseError):
     def __init__(self, error_code, error_desc):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
-
 
 
 # Get the References of the platform's ODBC functions via ctypes 
