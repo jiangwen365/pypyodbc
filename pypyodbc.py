@@ -1309,7 +1309,7 @@ class Cursor:
             
         else:
             self.execdirect(query_string)
-        return (self)
+        return self
     
     
     def _SQLExecute(self):
@@ -1344,7 +1344,7 @@ class Cursor:
         self._UpdateDesc()
         #self._BindCols()
         self.statement = None
-        return (self)
+        return self
         
         
     def callproc(self, procname, args):
@@ -1369,8 +1369,8 @@ class Cursor:
                 result.append(None)
             else:
                 result.append(self.connection.output_converter[sql_type](buf.value))
-        return (result)
-            
+        return result
+
                 
     
     def executemany(self, query_string, params_list = [None]):
@@ -1660,7 +1660,7 @@ class Cursor:
                 else:
                     raw_value = ''.join(blocks)
 
-            if raw_value == None:
+            if raw_value is None:
                 value_list.append(None)
             else:
                 value_list.append(buf_cvt_func(raw_value))
@@ -1740,20 +1740,20 @@ class Cursor:
         rows = []
         while True:
             row = self.fetchone()
-            if row == None:
+            if row is None:
                 break
             rows.append(row)
         return rows
 
 
     def fetchmany(self, num = None):
-        if num == None:
+        if num is None:
             num = self.arraysize
         rows, row_num = [], 0
         
         while row_num < num:
             row = self.fetchone()
-            if row == None:
+            if row is None:
                 break
             rows.append(row)
             row_num += 1
@@ -1775,7 +1775,7 @@ class Cursor:
     
     def next(self):
         row = self.fetchone()
-        if row == None:
+        if row is None:
             raise(StopIteration)
         return row
     
@@ -1827,7 +1827,7 @@ class Cursor:
     
     
     def getTypeInfo(self, sqlType = None):
-        if sqlType == None:
+        if sqlType is None:
             type = SQL_ALL_TYPES
         else:
             type = sqlType
@@ -1852,19 +1852,19 @@ class Cursor:
             
         
         
-        if catalog != None:
+        if catalog is not None:
             l_catalog = len(catalog)
             catalog = string_p(catalog) 
 
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
             
-        if table != None:
+        if table is not None:
             l_table = len(table)
             table = string_p(table)
             
-        if tableType != None: 
+        if tableType is not None: 
             l_tableType = len(tableType)
             tableType = string_p(tableType)
         
@@ -1880,7 +1880,7 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        return (self)
+        return self
     
     
     def columns(self, table=None, catalog=None, schema=None, column=None):
@@ -1896,16 +1896,16 @@ class Cursor:
             
         
         
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
-        if schema != None:
+        if schema is not None:
             l_schema = len(schema)
             schema = string_p(schema)
-        if table != None: 
+        if table is not None: 
             l_table = len(table)
             table = string_p(table)
-        if column != None: 
+        if column is not None: 
             l_column = len(column)
             column = string_p(column)
             
@@ -1922,7 +1922,7 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        return (self)
+        return self
     
     
     def primaryKeys(self, table=None, catalog=None, schema=None):
@@ -1937,15 +1937,15 @@ class Cursor:
             
         
         
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
             
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
             
-        if table != None: 
+        if table is not None: 
             l_table = len(table)
             table = string_p(table)
             
@@ -1961,7 +1961,7 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        return (self)
+        return self
     
         
     def foreignKeys(self, table=None, catalog=None, schema=None, foreignTable=None, foreignCatalog=None, foreignSchema=None):
@@ -1974,22 +1974,22 @@ class Cursor:
             string_p = ctypes.c_char_p
             API_f = ODBC_API.SQLForeignKeys
         
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
-        if table != None: 
+        if table is not None: 
             l_table = len(table)
             table = string_p(table)
-        if foreignTable != None: 
+        if foreignTable is not None: 
             l_foreignTable = len(foreignTable)
             foreignTable = string_p(foreignTable)
-        if foreignCatalog != None: 
+        if foreignCatalog is not None: 
             l_foreignCatalog = len(foreignCatalog)
             foreignCatalog = string_p(foreignCatalog)
-        if foreignSchema != None: 
+        if foreignSchema is not None: 
             l_foreignSchema = len(foreignSchema)
             foreignSchema = string_p(foreignSchema)
         
@@ -2008,7 +2008,7 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        return (self)
+        return self
     
     
     def procedurecolumns(self, procedure=None, catalog=None, schema=None, column=None):
@@ -2021,16 +2021,16 @@ class Cursor:
             API_f = ODBC_API.SQLProcedureColumns
             
         
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
-        if procedure != None: 
+        if procedure is not None: 
             l_procedure = len(procedure)
             procedure = string_p(procedure)
-        if column != None: 
+        if column is not None: 
             l_column = len(column)
             column = string_p(column)
             
@@ -2047,7 +2047,7 @@ class Cursor:
         
         self._NumOfRows()
         self._UpdateDesc()
-        return (self)
+        return self
         
     
     def procedures(self, procedure=None, catalog=None, schema=None):
@@ -2062,13 +2062,13 @@ class Cursor:
             
         
         
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
-        if procedure != None: 
+        if procedure is not None: 
             l_procedure = len(procedure)
             procedure = string_p(procedure)
             
@@ -2084,7 +2084,7 @@ class Cursor:
         
         self._NumOfRows()
         self._UpdateDesc()
-        return (self)
+        return self
 
 
     def statistics(self, table, catalog=None, schema=None, unique=False, quick=True):
@@ -2098,13 +2098,13 @@ class Cursor:
             API_f = ODBC_API.SQLStatistics
             
     
-        if catalog != None: 
+        if catalog is not None: 
             l_catalog = len(catalog)
             catalog = string_p(catalog)
-        if schema != None: 
+        if schema is not None: 
             l_schema = len(schema)
             schema = string_p(schema)
-        if table != None: 
+        if table is not None: 
             l_table = len(table)
             table = string_p(table)
             
@@ -2130,7 +2130,7 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        return (self)
+        return self
     
 
     def commit(self):
@@ -2207,7 +2207,7 @@ class Connection:
         self.autocommit = autocommit
         self.readonly = False
         self.timeout = 0
-
+        self._cursors = []
         for key, value in list(kargs.items()):
             connectString = connectString + key + '=' + value + ';'
         self.connectString = connectString
@@ -2217,7 +2217,7 @@ class Connection:
 
         try:
             lock.acquire()
-            if shared_env_h == None:
+            if shared_env_h is None:
                 #Initialize an enviroment if it is not created.
                 AllocateEnv()
         finally:
@@ -2340,9 +2340,9 @@ class Connection:
         #self.settimeout(self.timeout)
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
-        
-        
-        return Cursor(self, row_type_callable=row_type_callable)   
+        cur = Cursor(self, row_type_callable=row_type_callable) 
+        self._cursors.append(cur)
+        return cur
 
     def update_type_size_info(self):
         for sql_type in (
@@ -2353,7 +2353,7 @@ class Connection:
         ):
             cur = Cursor(self)
             info_tuple = cur.getTypeInfo(sql_type)
-            if info_tuple != None:
+            if info_tuple is not None:
                 self.type_size_dic[sql_type] = info_tuple[2], info_tuple[14]
             cur.close()
 
@@ -2439,7 +2439,10 @@ class Connection:
     def close(self):
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to close a closed connection.')
-        
+        for cur in self._cursors:
+            if not cur is None:
+                if not cur.closed:
+                    cur.close()
         
         if self.connected:
             #if DEBUG:print 'disconnect'
@@ -2505,7 +2508,7 @@ def dataSources():
     dsn_list = {}
     try:
         lock.acquire()
-        if shared_env_h == None:
+        if shared_env_h is None:
             AllocateEnv()
     finally:
         lock.release()
