@@ -1226,6 +1226,9 @@ class Cursor:
                     max_len = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][0]
                     datetime_str = param_val.strftime('%Y-%m-%d %H:%M:%S.%f')
                     c_char_buf = datetime_str[:max_len]
+                    if py_v3:
+                        c_char_buf = bytes(c_char_buf,'ascii')
+                        
                     c_buf_len = len(c_char_buf)
                     # print c_buf_len, c_char_buf
                     
@@ -1235,6 +1238,8 @@ class Cursor:
                     else:
                         max_len = 10
                     c_char_buf = param_val.isoformat()[:max_len]
+                    if py_v3:
+                        c_char_buf = bytes(c_char_buf,'ascii')
                     c_buf_len = len(c_char_buf)
                     #print c_char_buf
                     
@@ -1253,6 +1258,8 @@ class Cursor:
                         if len(time_str) == 8:
                             time_str += '.000'
                         c_char_buf = '1900-01-01 '+time_str[0:c_buf_len - 11]
+                    if py_v3:
+                        c_char_buf = bytes(c_char_buf,'ascii')
                     #print c_buf_len, c_char_buf
                     
                 elif isinstance(param_val, bool):
@@ -1260,6 +1267,8 @@ class Cursor:
                         c_char_buf = '1'
                     else:
                         c_char_buf = '0'
+                    if py_v3:
+                        c_char_buf = bytes(c_char_buf,'ascii')
                     c_buf_len = 1
                     
                 elif isinstance(param_val, (int, long, float, Decimal)):
