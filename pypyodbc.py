@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.6'
+version = '1.0.7'
 lowercase=True
 
 DEBUG = 0
@@ -567,9 +567,9 @@ SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CH
 SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30     ),
 SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048   ),
 SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500  ),
-SQL_BINARY          : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
-SQL_VARBINARY       : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
-SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      20500  ),
+SQL_BINARY          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_VARBINARY       : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      20500  ),
 SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150    ),
 SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150    ),
 SQL_BIT             : (bool,                lambda x:x=='1',            SQL_C_CHAR,         create_buffer,      2      ),
@@ -581,7 +581,7 @@ SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CH
 SQL_TYPE_TIME       : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20     ),
 SQL_TYPE_TIMESTAMP  : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30      ), 
 SQL_SS_VARIANT      : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048   ), 
-SQL_SS_UDT          : (bytearray,           bytearray_cvt,                  SQL_C_BINARY,       create_buffer,      5120   ),
+SQL_SS_UDT          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120   ),
 }
 
 
@@ -1125,15 +1125,25 @@ def MutableNamedTupleRow(cursor):
 
     return Row
 
+# When Null is used in a binary parameter, database usually would not
+# accept the None for a binary field, so the work around is to use a 
+# Specical None that the pypyodbc moudle would know this NULL is for
+# a binary field.
+class BinaryNullType(): pass
+BinaryNull = BinaryNullType()
 
 # The get_type function is used to determine if parameters need to be re-binded 
 # against the changed parameter types
-def get_type(v):
-    
+# 'b' for bool, 'lu' for long unicode string, 'su' for short unicode string
+# 'ls' for long 8 bit string, 'ss' for short 8 bit string, 'l' for big integer, 'i' for normal integer
+# 'f' for float, a tuple for Decimal, 't' for datetime.time, 'd' for datetime.datetime, 'dt' for datetime.datetime
+# 'bi' for binary
+def get_type(v):    
+
     if py_v3:
         if isinstance(v, bytes):
             if len(v) >= 255:
-                return 's'
+                return 'ss'
     if isinstance(v, bool):
         return 'b'
     elif isinstance(v, unicode):
@@ -1154,18 +1164,22 @@ def get_type(v):
             return  'i'
     elif isinstance(v, float):
         return 'f'
+    elif isinstance(v, BinaryNullType):
+        return 'BN'
+    elif v is None:
+        return 'N'
     elif isinstance(v, Decimal):
         sv = str(v).replace('-','').strip('0').split('.')
         if len(sv)>1:
             return  (len(sv[0])+len(sv[1]),len(sv[1]))
         else:
             return  (len(sv[0]),0)
-    elif isinstance(v, datetime.time):
-        return 't'
-    elif isinstance (v, datetime.date):
-        return 'd'
     elif isinstance (v, datetime.datetime):
         return 'dt'
+    elif isinstance (v, datetime.date):
+        return 'd'
+    elif isinstance(v, datetime.time):
+        return 't'
     elif isinstance (v, (bytearray, buffer)):
         return 'bi'
         
@@ -1236,7 +1250,7 @@ class Cursor:
         for col_num in range(NumParams.value):
             col_size = 0            
             buf_size = 512
-        
+            '''
             if param_types[col_num] == type(None):
                 ParameterNumber = ctypes.c_ushort(col_num + 1)
                 DataType = ctypes.c_short()
@@ -1258,6 +1272,19 @@ class Cursor:
                 sql_type = DataType.value
                 buf_size = 1
                 ParameterBuffer = create_buffer(buf_size)
+            '''
+                
+            if param_types[col_num] == 'BN':
+                sql_c_type = SQL_C_BINARY
+                sql_type = SQL_VARBINARY 
+                buf_size = 1                 
+                ParameterBuffer = create_buffer(buf_size)                
+            
+            elif param_types[col_num] == 'N':
+                sql_c_type = SQL_C_CHAR
+                sql_type = SQL_CHAR
+                buf_size = 1                 
+                ParameterBuffer = create_buffer(buf_size)   
 
             elif param_types[col_num] == 'lu':
                 sql_c_type = SQL_C_WCHAR
@@ -1434,7 +1461,7 @@ class Cursor:
             for param_buffer, param_buffer_len, sql_type in self._ParamBufferList:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
-                if param_val is None:
+                if param_types[col_num] in ('N','BN'):
                     c_buf_len = SQL_NULL_DATA
                     
                 elif param_types[col_num] in ('i','l','f'):
@@ -1686,7 +1713,7 @@ class Cursor:
                     if type(blocks[0]) == str:
                         raw_value = ''.join(blocks)
                     else:
-                        raw_value = b''.join(blocks)
+                        raw_value = bytes('').join(blocks)
                 else:
                     raw_value = ''.join(blocks)
 
