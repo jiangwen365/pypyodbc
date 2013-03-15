@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.7'
+version = '1.0.8'
 lowercase=True
 
 DEBUG = 0
@@ -1140,10 +1140,6 @@ BinaryNull = BinaryNullType()
 # 'bi' for binary
 def get_type(v):    
 
-    if py_v3:
-        if isinstance(v, bytes):
-            if len(v) >= 255:
-                return 'ss'
     if isinstance(v, bool):
         return 'b'
     elif isinstance(v, unicode):
@@ -1151,7 +1147,7 @@ def get_type(v):
             return  'lu'
         else:
             return 'su'
-    elif isinstance(v, str):
+    elif isinstance(v, (bytes,str)):
         if len(v) >= 255:
             return  'ls'
         else:
@@ -1478,7 +1474,7 @@ class Cursor:
                     c_char_buf = ucs2_buf(param_val)
                     c_buf_len = len(c_char_buf)
                     
-                elif param_types[col_num] == 't':
+                elif param_types[col_num] == 'dt':
                     max_len = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][0]
                     datetime_str = param_val.strftime('%Y-%m-%d %H:%M:%S.%f')
                     c_char_buf = datetime_str[:max_len]
@@ -1499,7 +1495,7 @@ class Cursor:
                     c_buf_len = len(c_char_buf)
                     #print c_char_buf
                     
-                elif param_types[col_num] == 'dt':
+                elif param_types[col_num] == 't':
                     if SQL_TYPE_TIME in self.connection.type_size_dic:
                         max_len = self.connection.type_size_dic[SQL_TYPE_TIME][0]
                         c_char_buf = param_val.isoformat()[:max_len]
@@ -1558,6 +1554,7 @@ class Cursor:
                 col_num += 1
             ret = SQLExecute(self.stmt_h)
             if ret != SQL_SUCCESS:
+                #print param_valparam_buffer, param_buffer.value
                 check_success(self, ret)
             
 
