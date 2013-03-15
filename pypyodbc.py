@@ -1147,7 +1147,7 @@ def get_type(v):
             return  'lu'
         else:
             return 'su'
-    elif isinstance(v, (bytes,str)):
+    elif isinstance(v, (str_8b,str)):
         if len(v) >= 255:
             return  'ls'
         else:
