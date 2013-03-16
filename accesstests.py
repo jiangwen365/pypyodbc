@@ -97,19 +97,19 @@ class AccessTestCase(unittest.TestCase):
     def test_multiple_bindings(self):
         "More than one bind and select on a cursor"
         self.cursor.execute("create table t1(n int)")
-        self.cursor.execute("insert into t1 values (?)", 1)
-        self.cursor.execute("insert into t1 values (?)", 2)
-        self.cursor.execute("insert into t1 values (?)", 3)
+        self.cursor.execute("insert into t1 values (?)", (1,))
+        self.cursor.execute("insert into t1 values (?)", (2,))
+        self.cursor.execute("insert into t1 values (?)", (3,))
         for i in range(3):
-            self.cursor.execute("select n from t1 where n < ?", 10)
+            self.cursor.execute("select n from t1 where n < ?", (10,))
             self.cursor.execute("select n from t1 where n < 3")
         
 
     def test_different_bindings(self):
         self.cursor.execute("create table t1(n int)")
         self.cursor.execute("create table t2(d datetime)")
-        self.cursor.execute("insert into t1 values (?)", 1)
-        self.cursor.execute("insert into t2 values (?)", datetime.now())
+        self.cursor.execute("insert into t1 values (?)", (1,))
+        self.cursor.execute("insert into t2 values (?)", (datetime.now(),))
 
     def test_datasources(self):
         p = pypyodbc.dataSources()
@@ -117,7 +117,7 @@ class AccessTestCase(unittest.TestCase):
 
     def test_getinfo_string(self):
         value = self.cnxn.getinfo(pypyodbc.SQL_CATALOG_NAME_SEPARATOR)
-        self.assert_(isinstance(value, str))
+        self.assert_(isinstance(value, (unicode,str)))
 
     def test_getinfo_bool(self):
         value = self.cnxn.getinfo(pypyodbc.SQL_ACCESSIBLE_TABLES)
@@ -255,7 +255,7 @@ class AccessTestCase(unittest.TestCase):
     def test_subquery_params(self):
         """Ensure parameter markers work in a subquery"""
         self.cursor.execute("create table t1(id integer, s varchar(20))")
-        self.cursor.execute("insert into t1 values (?,?)", 1, 'test')
+        self.cursor.execute("insert into t1 values (?,?)", (1, 'test',))
         row = self.cursor.execute("""
                                   select x.id
                                   from (
@@ -264,7 +264,7 @@ class AccessTestCase(unittest.TestCase):
                                     where s = ?
                                       and id between ? and ?
                                    ) x
-                                   """, 'test', 1, 10).fetchone()
+                                   """, ('test', 1, 10)).fetchone()
         self.assertNotEqual(row, None)
         self.assertEqual(row[0], 1)
 
@@ -275,7 +275,7 @@ class AccessTestCase(unittest.TestCase):
         """Make sure using a Cursor after closing its connection doesn't crash."""
 
         self.cursor.execute("create table t1(id integer, s varchar(20))")
-        self.cursor.execute("insert into t1 values (?,?)", 1, 'test')
+        self.cursor.execute("insert into t1 values (?,?)", (1, 'test'))
         self.cursor.execute("select * from t1")
 
         self.cnxn.close()
@@ -291,7 +291,7 @@ class AccessTestCase(unittest.TestCase):
         
     def test_negative_row_index(self):
         self.cursor.execute("create table t1(s varchar(20))")
-        self.cursor.execute("insert into t1 values(?)", "1")
+        self.cursor.execute("insert into t1 values(?)", ("1",))
         row = self.cursor.execute("select * from t1").fetchone()
         self.assertEquals(row[0], "1")
         self.assertEquals(row[-1], "1")
@@ -307,7 +307,7 @@ class AccessTestCase(unittest.TestCase):
         value = datetime(2007, 1, 15, 3, 4, 5)
 
         self.cursor.execute("create table t1(dt datetime)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
 
         result = self.cursor.execute("select dt from t1").fetchone()[0]
         self.assertEquals(value, result)
@@ -319,56 +319,56 @@ class AccessTestCase(unittest.TestCase):
     def test_int(self):
         value = 1234
         self.cursor.execute("create table t1(n int)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEquals(result, value)
 
     def test_negative_int(self):
         value = -1
         self.cursor.execute("create table t1(n int)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEquals(result, value)
 
     def test_smallint(self):
         value = 32767
         self.cursor.execute("create table t1(n smallint)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEquals(result, value)
 
     def test_real(self):
         value = 1234.5
         self.cursor.execute("create table t1(n real)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEquals(result, value)
 
     def test_negative_real(self):
         value = -200.5
         self.cursor.execute("create table t1(n real)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result  = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEqual(value, result)
 
     def test_float(self):
         value = 1234.567
         self.cursor.execute("create table t1(n float)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEquals(result, value)
 
     def test_negative_float(self):
         value = -200.5
         self.cursor.execute("create table t1(n float)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result  = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEqual(value, result)
 
     def test_tinyint(self):
         self.cursor.execute("create table t1(n tinyint)")
         value = 10
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEqual(type(result), type(value))
         self.assertEqual(value, result)
@@ -380,7 +380,7 @@ class AccessTestCase(unittest.TestCase):
     def test_decimal(self):
         value = Decimal('12345.6789')
         self.cursor.execute("create table t1(n numeric(10,4))")
-        self.cursor.execute("insert into t1 values(?)", value)
+        self.cursor.execute("insert into t1 values(?)", (value,))
         v = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEqual(type(v), Decimal)
         self.assertEqual(v, value)
@@ -388,7 +388,7 @@ class AccessTestCase(unittest.TestCase):
     def test_money(self):
         self.cursor.execute("create table t1(n money)")
         value = Decimal('1234.45')
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select n from t1").fetchone()[0]
         self.assertEqual(type(result), type(value))
         self.assertEqual(value, result)
@@ -396,7 +396,7 @@ class AccessTestCase(unittest.TestCase):
     def test_negative_decimal_scale(self):
         value = Decimal('-10.0010')
         self.cursor.execute("create table t1(d numeric(19,4))")
-        self.cursor.execute("insert into t1 values(?)", value)
+        self.cursor.execute("insert into t1 values(?)", (value,))
         v = self.cursor.execute("select * from t1").fetchone()[0]
         self.assertEqual(type(v), Decimal)
         self.assertEqual(v, value)
@@ -409,7 +409,7 @@ class AccessTestCase(unittest.TestCase):
         self.cursor.execute("create table t1(b bit)")
 
         value = True
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select b from t1").fetchone()[0]
         self.assertEqual(type(result), bool)
         self.assertEqual(value, result)
@@ -418,7 +418,7 @@ class AccessTestCase(unittest.TestCase):
         self.cursor.execute("create table t1(b bit)")
 
         value = None
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         result = self.cursor.execute("select b from t1").fetchone()[0]
         self.assertEqual(type(result), bool)
         self.assertEqual(False, result)
@@ -429,7 +429,7 @@ class AccessTestCase(unittest.TestCase):
         # be Unicode -- pypyodbc 3.x will have different defaults.
         value = "de2ac9c6-8676-4b0b-b8a6-217a8580cbee"
         self.cursor.execute("create table t1(g1 uniqueidentifier)")
-        self.cursor.execute("insert into t1 values (?)", value)
+        self.cursor.execute("insert into t1 values (?)", (value,))
         v = self.cursor.execute("select * from t1").fetchone()[0]
         self.assertEqual(type(v), type(value))
         self.assertEqual(len(v), len(value))
@@ -444,7 +444,7 @@ class AccessTestCase(unittest.TestCase):
         self.cursor.execute("create table t1(i int)")
         count = 4
         for i in range(count):
-            self.cursor.execute("insert into t1 values (?)", i)
+            self.cursor.execute("insert into t1 values (?)", (i,))
         self.cursor.execute("delete from t1")
         self.assertEquals(self.cursor.rowcount, count)
 
@@ -472,7 +472,7 @@ class AccessTestCase(unittest.TestCase):
         self.cursor.execute("create table t1(i int)")
         count = 4
         for i in range(count):
-            self.cursor.execute("insert into t1 values (?)", i)
+            self.cursor.execute("insert into t1 values (?)", (i,))
         self.cursor.execute("select * from t1")
         self.assertEquals(self.cursor.rowcount, -1)
 
@@ -486,7 +486,7 @@ class AccessTestCase(unittest.TestCase):
         self.cursor.execute("create table t1(i int)")
         count = 4
         for i in range(count):
-            self.cursor.execute("insert into t1 values (?)", i)
+            self.cursor.execute("insert into t1 values (?)", (i,))
         self.assertEquals(self.cursor.rowcount, 1)
 
         self.cursor.execute("create table t2(i int)")
@@ -557,7 +557,7 @@ class AccessTestCase(unittest.TestCase):
                    ('error', 'not an int'),
                    (3, 'good') ]
         
-        self.failUnlessRaises(pypyodbc.Error, self.cursor.executemany, "insert into t1(a, b) value (?, ?)", params)
+        self.failUnlessRaises(pypyodbc.Error, self.cursor.executemany, "insert into t1(a, b) value (?, ?)", (params))
 
         
     def test_row_slicing(self):
@@ -567,13 +567,13 @@ class AccessTestCase(unittest.TestCase):
         row = self.cursor.execute("select * from t1").fetchone()
 
         result = row[:]
-        self.failUnless(result is row)
+        self.failUnless(result == row)
 
         result = row[:-1]
         self.assertEqual(result, (1,2,3))
 
         result = row[0:4]
-        self.failUnless(result is row)
+        self.failUnless(result == row)
 
 
     def test_row_repr(self):
@@ -598,7 +598,7 @@ class AccessTestCase(unittest.TestCase):
         value = v2 + 'x' + v3
 
         self.cursor.execute("create table t1(c2 varchar(250), c3 varchar(250))")
-        self.cursor.execute("insert into t1(c2, c3) values (?,?)", v2, v3)
+        self.cursor.execute("insert into t1(c2, c3) values (?,?)", (v2, v3))
 
         row = self.cursor.execute("select c2 + 'x' + c3 from t1").fetchone()
 
