@@ -974,7 +974,7 @@ SQLGetData = ODBC_API.SQLGetData
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
-BLANK_BYTE = str_8b('')
+BLANK_BYTE = str_8b()
 
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
