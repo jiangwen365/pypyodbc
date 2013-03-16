@@ -1128,7 +1128,7 @@ def MutableNamedTupleRow(cursor):
 
     return Row
     
-if py_ver < '2.6':
+if True:  #if py_ver < '2.6': (NamedTuple doesn't work with unicode field_names)
     DefaultRowType = TupleRow
 else:
     DefaultRowType = NamedTupleRow
