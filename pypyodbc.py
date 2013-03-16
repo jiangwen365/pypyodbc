@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.8'
+version = '1.0.9'
 lowercase=True
 
 DEBUG = 0
@@ -45,7 +45,7 @@ else:
     str_8b = str
 if py_ver < '2.6':
     bytearray = str
-    
+
 
 if not hasattr(ctypes, 'c_ssize_t'):
     if ctypes.sizeof(ctypes.c_uint) == ctypes.sizeof(ctypes.c_void_p):
@@ -974,6 +974,7 @@ SQLGetData = ODBC_API.SQLGetData
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
+BLANK_BYTE = str_8b('')
 
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
@@ -1066,6 +1067,8 @@ A new one can be added by creating a callable that:
 - returns a callable that accepts an iterable containing the row values.
 """
 
+
+
 def TupleRow(cursor):
     """Normal tuple with added attribute `cursor_description`, as in pyodbc.
 
@@ -1124,6 +1127,11 @@ def MutableNamedTupleRow(cursor):
             setattr(self, self.__slots__[index], value)
 
     return Row
+    
+if py_ver < '2.6':
+    DefaultRowType = TupleRow
+else:
+    DefaultRowType = NamedTupleRow
 
 # When Null is used in a binary parameter, database usually would not
 # accept the None for a binary field, so the work around is to use a 
@@ -1191,7 +1199,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or DefaultRowType
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1431,10 +1439,10 @@ class Cursor:
         """
 
         self._free_results(FREE_STATEMENT)
-
+        #print (query_string)
         if params:
             # If parameters exist, first prepare the query then executed with parameters
-            if not type(params) in (tuple, list, set):
+            if not isinstance(params, (tuple, list, set)):
                 raise TypeError("Params must be in a list, tuple, or set")
             
             if not many_mode:
@@ -1458,6 +1466,7 @@ class Cursor:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
                 if param_types[col_num] in ('N','BN'):
+                    c_char_buf = BLANK_BYTE
                     c_buf_len = SQL_NULL_DATA
                     
                 elif param_types[col_num] in ('i','l','f'):
@@ -1542,8 +1551,8 @@ class Cursor:
                     param_buffer.raw = str_8b(param_val)
                     
                 else:
+                    #print (type(param_val),param_buffer, param_buffer.value)
                     param_buffer.value = c_char_buf
-                    #print param_buffer, param_buffer.value
                     
                 if param_types[col_num] in ('lu','su','ls','ss'):
                     #ODBC driver will find NUL in unicode and string to determine their length
@@ -1710,7 +1719,7 @@ class Cursor:
                     if type(blocks[0]) == str:
                         raw_value = ''.join(blocks)
                     else:
-                        raw_value = bytes('').join(blocks)
+                        raw_value = BLANK_BYTE.join(blocks)
                 else:
                     raw_value = ''.join(blocks)
 
