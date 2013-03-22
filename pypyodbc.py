@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.9'
+version = '1.0.10'
 lowercase=True
 
 DEBUG = 0
@@ -45,7 +45,7 @@ else:
     str_8b = str
 if py_ver < '2.6':
     bytearray = str
-
+    
 
 if not hasattr(ctypes, 'c_ssize_t'):
     if ctypes.sizeof(ctypes.c_uint) == ctypes.sizeof(ctypes.c_void_p):
@@ -974,7 +974,6 @@ SQLGetData = ODBC_API.SQLGetData
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
-BLANK_BYTE = str_8b()
 
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
@@ -984,10 +983,15 @@ def ctrl_err(ht, h, val_ret, ansi):
         state = create_buffer(22)
         Message = create_buffer(1024*10)
         ODBC_func = ODBC_API.SQLGetDiagRec
+        if py_v3:
+            raw_s = lambda s: bytes(s,'ascii')
+        else:
+            raw_s = str_8b
     else:
         state = create_buffer_u(22)
         Message = create_buffer_u(1024*10)
         ODBC_func = ODBC_API.SQLGetDiagRecW
+        raw_s = unicode
     NativeError = ctypes.c_int()
     Buffer_len = ctypes.c_short()
     err_list = []
@@ -1000,18 +1004,18 @@ def ctrl_err(ht, h, val_ret, ansi):
             #No more data, I can raise
             #if DEBUG:print(err_list[0][1])
             state = err_list[0][0]
-            err_text = '['+state+'] '+err_list[0][1]
-            if state[:2] in (unicode('24'),unicode('25'),unicode('42')):
+            err_text = raw_s('[')+state+raw_s('] ')+err_list[0][1]
+            if state[:2] in (raw_s('24'),raw_s('25'),raw_s('42')):
                 raise ProgrammingError(state,err_text)
-            elif state[:2] in (unicode('22')):
+            elif state[:2] in (raw_s('22')):
                 raise DataError(state,err_text)
-            elif state[:2] in (unicode('23')) or state == unicode('40002'):
+            elif state[:2] in (raw_s('23')) or state == raw_s('40002'):
                 raise IntegrityError(state,err_text)
-            elif state == unicode('0A000'):
+            elif state == raw_s('0A000'):
                 raise NotSupportedError(state,err_text)
-            elif state in (unicode('HYT00'),unicode('HYT01')):
+            elif state in (raw_s('HYT00'),raw_s('HYT01')):
                 raise OperationalError(state,err_text)
-            elif state[:2] in (unicode('IM'),unicode('HY')):
+            elif state[:2] in (raw_s('IM'),raw_s('HY')):
                 raise Error(state,err_text)
             else:
                 raise DatabaseError(state,err_text)
@@ -1066,8 +1070,6 @@ A new one can be added by creating a callable that:
 - accepts a cursor as its parameter.
 - returns a callable that accepts an iterable containing the row values.
 """
-
-
 
 def TupleRow(cursor):
     """Normal tuple with added attribute `cursor_description`, as in pyodbc.
@@ -1127,11 +1129,6 @@ def MutableNamedTupleRow(cursor):
             setattr(self, self.__slots__[index], value)
 
     return Row
-    
-if True:  #if py_ver < '2.6': (NamedTuple doesn't work with unicode field_names)
-    DefaultRowType = TupleRow
-else:
-    DefaultRowType = NamedTupleRow
 
 # When Null is used in a binary parameter, database usually would not
 # accept the None for a binary field, so the work around is to use a 
@@ -1199,7 +1196,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or DefaultRowType
+        self.row_type_callable = row_type_callable or TupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1439,10 +1436,10 @@ class Cursor:
         """
 
         self._free_results(FREE_STATEMENT)
-        #print (query_string)
+
         if params:
             # If parameters exist, first prepare the query then executed with parameters
-            if not isinstance(params, (tuple, list, set)):
+            if not type(params) in (tuple, list, set):
                 raise TypeError("Params must be in a list, tuple, or set")
             
             if not many_mode:
@@ -1466,7 +1463,7 @@ class Cursor:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
                 if param_types[col_num] in ('N','BN'):
-                    c_char_buf = BLANK_BYTE
+                    c_char_buf = str_8b()
                     c_buf_len = SQL_NULL_DATA
                     
                 elif param_types[col_num] in ('i','l','f'):
@@ -1671,66 +1668,6 @@ class Cursor:
             self._ColBufferList.append([col_name, target_type, used_buf_len, ADDR(used_buf_len), alloc_buffer, ADDR(alloc_buffer), total_buf_len, buf_cvt_func])     
         
     
-    def _GetData(self):
-        '''Bind buffers for the record set columns'''
-        
-        # Lazily create the row type on first fetch.
-        if self._row_type is None:
-            self._row_type = self.row_type_callable(self)
-
-        value_list = []
-        col_num = 1
-        for col_name, target_type, used_buf_len, ADDR_used_buf_len, alloc_buffer, ADDR_alloc_buffer, total_buf_len, buf_cvt_func in self._ColBufferList:
-            
-            blocks = []
-            while 1:
-                ret = SQLGetData(self.stmt_h, col_num, target_type, ADDR_alloc_buffer, total_buf_len, ADDR_used_buf_len)
-                if ret == SQL_SUCCESS:
-                    if used_buf_len.value == SQL_NULL_DATA:
-                        blocks.append(None)                    
-                    else:
-                        if target_type == SQL_C_BINARY:
-                            blocks.append(alloc_buffer.raw[:used_buf_len.value])
-                        elif target_type == SQL_C_WCHAR:
-                            blocks.append(from_buffer_u(alloc_buffer))
-                        else:
-                            #print col_name, target_type, alloc_buffer.value
-                            blocks.append(alloc_buffer.value)
-                            
-                    break                    
-                
-                elif ret == SQL_SUCCESS_WITH_INFO:
-                    if target_type == SQL_C_BINARY:
-                        blocks.append(alloc_buffer.raw)
-                    else:
-                        blocks.append(alloc_buffer.value)  
-     
-                elif ret == SQL_NO_DATA:
-                    break
-                else:
-                    check_success(self, ret)   
-                
-            if len(blocks) == 0:
-                raw_value = None
-            elif len(blocks) == 1:
-                raw_value = blocks[0]
-            else:
-                if py_v3:
-                    if type(blocks[0]) == str:
-                        raw_value = ''.join(blocks)
-                    else:
-                        raw_value = BLANK_BYTE.join(blocks)
-                else:
-                    raw_value = ''.join(blocks)
-
-            if raw_value is None:
-                value_list.append(None)
-            else:
-                value_list.append(buf_cvt_func(raw_value))
-            col_num += 1
-        
-        return self._row_type(value_list)
-        
     
     def _UpdateDesc(self):
         "Get the information of (name, type_code, display_size, internal_size, col_precision, scale, null_ok)"  
@@ -1825,8 +1762,66 @@ class Cursor:
 
     def fetchone(self):
         ret = SQLFetch(self.stmt_h)
-        if ret == SQL_SUCCESS:
-            return self._GetData()
+        if ret == SQL_SUCCESS:            
+            '''Bind buffers for the record set columns'''
+            
+            # Lazily create the row type on first fetch.
+            if self._row_type is None:
+                self._row_type = self.row_type_callable(self)
+
+            value_list = []
+            col_num = 1
+            for col_name, target_type, used_buf_len, ADDR_used_buf_len, alloc_buffer, ADDR_alloc_buffer, total_buf_len, buf_cvt_func in self._ColBufferList:
+                
+                blocks = []
+                while 1:
+                    ret = SQLGetData(self.stmt_h, col_num, target_type, ADDR_alloc_buffer, total_buf_len, ADDR_used_buf_len)
+                    if ret == SQL_SUCCESS:
+                        if used_buf_len.value == SQL_NULL_DATA:
+                            blocks.append(None)                    
+                        else:
+                            if target_type == SQL_C_BINARY:
+                                blocks.append(alloc_buffer.raw[:used_buf_len.value])
+                            elif target_type == SQL_C_WCHAR:
+                                blocks.append(from_buffer_u(alloc_buffer))
+                            else:
+                                #print col_name, target_type, alloc_buffer.value
+                                blocks.append(alloc_buffer.value)
+                                
+                        break                    
+                    
+                    elif ret == SQL_SUCCESS_WITH_INFO:
+                        if target_type == SQL_C_BINARY:
+                            blocks.append(alloc_buffer.raw)
+                        else:
+                            blocks.append(alloc_buffer.value)  
+         
+                    elif ret == SQL_NO_DATA:
+                        break
+                    else:
+                        check_success(self, ret)   
+                    
+                if len(blocks) == 0:
+                    raw_value = None
+                elif len(blocks) == 1:
+                    raw_value = blocks[0]
+                else:
+                    if py_v3:
+                        if type(blocks[0]) == str:
+                            raw_value = ''.join(blocks)
+                        else:
+                            raw_value = bytes('').join(blocks)
+                    else:
+                        raw_value = ''.join(blocks)
+
+                if raw_value is None:
+                    value_list.append(None)
+                else:
+                    value_list.append(buf_cvt_func(raw_value))
+                col_num += 1
+            
+            return self._row_type(value_list)
+        
         else:
             if ret == SQL_NO_DATA_FOUND:
                 return None
