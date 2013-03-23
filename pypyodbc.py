@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.11'
+version = '1.1.0.alpha'
 lowercase=True
 
 DEBUG = 0
@@ -1213,11 +1213,14 @@ class Cursor:
         self.arraysize = 1
         ret = ODBC_API.SQLAllocHandle(SQL_HANDLE_STMT, self.connection.dbc_h, ADDR(self.stmt_h))
         check_success(self, ret)
+        self._PARAM_SQL_TYPE_LIST = []
         self.closed = False      
 
             
     def prepare(self, query_string):
         """prepare a query"""
+        
+        self._free_results(NO_FREE_STATEMENT)
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
@@ -1226,6 +1229,34 @@ class Cursor:
             ret = ODBC_API.SQLPrepare(self.stmt_h, c_query_string, len(query_string))
         if ret != SQL_SUCCESS:
             check_success(self, ret)
+            
+        self._PARAM_SQL_TYPE_LIST = [] 
+        if self.connection.support_SQLDescribeParam:
+            NumParams = ctypes.c_short()
+            ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
+            if ret != SQL_SUCCESS:
+                check_success(self, ret)
+        
+            for col_num in range(NumParams.value):
+                ParameterNumber = ctypes.c_ushort(col_num + 1)
+                DataType = ctypes.c_short()
+                ParameterSize = ctypes.c_size_t()
+                DecimalDigits = ctypes.c_short()
+                Nullable = ctypes.c_short()
+                ret = ODBC_API.SQLDescribeParam(
+                    self.stmt_h,
+                    ParameterNumber,
+                    ADDR(DataType),
+                    ADDR(ParameterSize),
+                    ADDR(DecimalDigits),
+                    ADDR(Nullable),
+                )
+                if ret != SQL_SUCCESS:
+                    check_success(self, ret)
+
+                sql_type = DataType.value
+                self._PARAM_SQL_TYPE_LIST.append(sql_type)
+        
         self.statement = query_string
 
 
@@ -1254,26 +1285,7 @@ class Cursor:
             buf_size = 512
             '''
             if param_types[col_num] == type(None):
-                ParameterNumber = ctypes.c_ushort(col_num + 1)
-                DataType = ctypes.c_short()
-                ParameterSize = ctypes.c_size_t()
-                DecimalDigits = ctypes.c_short()
-                Nullable = ctypes.c_short()
-                ret = ODBC_API.SQLDescribeParam(
-                    self.stmt_h,
-                    ParameterNumber,
-                    ADDR(DataType),
-                    ADDR(ParameterSize),
-                    ADDR(DecimalDigits),
-                    ADDR(Nullable),
-                )
-                if ret != SQL_SUCCESS:
-                    check_success(self, ret)
 
-                sql_c_type = SQL_C_DEFAULT
-                sql_type = DataType.value
-                buf_size = 1
-                ParameterBuffer = create_buffer(buf_size)
             '''
                 
             if param_types[col_num] == 'BN':
@@ -1283,10 +1295,16 @@ class Cursor:
                 ParameterBuffer = create_buffer(buf_size)                
             
             elif param_types[col_num] == 'N':
-                sql_c_type = SQL_C_CHAR
-                sql_type = SQL_CHAR
-                buf_size = 1                 
-                ParameterBuffer = create_buffer(buf_size)   
+                if self.connection.support_SQLDescribeParam:
+                    sql_c_type = SQL_C_DEFAULT
+                    sql_type = self._PARAM_SQL_TYPE_LIST[col_num]
+                    buf_size = 1
+                    ParameterBuffer = create_buffer(buf_size)
+                else:
+                    sql_c_type = SQL_C_CHAR
+                    sql_type = SQL_CHAR
+                    buf_size = 1                 
+                    ParameterBuffer = create_buffer(buf_size)   
 
             elif param_types[col_num] == 'lu':
                 sql_c_type = SQL_C_WCHAR
@@ -2349,7 +2367,6 @@ class Connection:
             ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER)
         else:
             ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, SQL_IS_UINTEGER)
-    
         check_success(self, ret)
        
         # Set the connection's attribute of "readonly" 
@@ -2360,7 +2377,7 @@ class Connection:
         check_success(self, ret)
         
         self.unicode_results = unicode_results
-        self.update_type_size_info()
+        self.update_db_special_info()
         self.connected = 1
         
     def clear_output_converters(self):
@@ -2391,7 +2408,7 @@ class Connection:
         ret = ODBC_API.SQLConnect(self.dbc_h, sn, len(sn), un, len(un), pw, len(pw))
         check_success(self, ret)
 
-        self.update_type_size_info()
+        self.update_db_special_info()
         self.connected = 1
         
         
@@ -2403,7 +2420,7 @@ class Connection:
         self._cursors.append(cur)
         return cur
 
-    def update_type_size_info(self):
+    def update_db_special_info(self):
         for sql_type in (
             SQL_TYPE_TIMESTAMP,
             SQL_TYPE_DATE,
@@ -2415,7 +2432,14 @@ class Connection:
             if info_tuple is not None:
                 self.type_size_dic[sql_type] = info_tuple[2], info_tuple[14]
             cur.close()
-
+            
+        self.support_SQLDescribeParam = False
+        try:
+            driver_name = self.getinfo(SQL_DRIVER_NAME)
+            if len([x for x in ('SQLSRV','libsqlncli') if x in driver_name]) > 0:
+                self.support_SQLDescribeParam = True
+        except:
+            pass
     
     def commit(self):
         if not self.connected:
