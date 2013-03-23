@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.0.10'
+version = '1.0.11'
 lowercase=True
 
 DEBUG = 0
@@ -974,6 +974,7 @@ SQLGetData = ODBC_API.SQLGetData
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
+BLANK_BYTE = str_8b()
 
 def ctrl_err(ht, h, val_ret, ansi):
     """Classify type of ODBC error from (type of handle, handle, return value)
@@ -1439,7 +1440,7 @@ class Cursor:
 
         if params:
             # If parameters exist, first prepare the query then executed with parameters
-            if not type(params) in (tuple, list, set):
+            if not isinstance(params, (tuple, list, set)):
                 raise TypeError("Params must be in a list, tuple, or set")
             
             if not many_mode:
@@ -1463,7 +1464,7 @@ class Cursor:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
                 if param_types[col_num] in ('N','BN'):
-                    c_char_buf = str_8b()
+                    c_char_buf = BLANK_BYTE
                     c_buf_len = SQL_NULL_DATA
                     
                 elif param_types[col_num] in ('i','l','f'):
@@ -1810,7 +1811,7 @@ class Cursor:
                         if type(blocks[0]) == str:
                             raw_value = ''.join(blocks)
                         else:
-                            raw_value = bytes('').join(blocks)
+                            raw_value = BLANK_BYTE.join(blocks)
                     else:
                         raw_value = ''.join(blocks)
 
@@ -2540,7 +2541,11 @@ def win_create_mdb(mdb_path, sort_order = "General\0\0"):
     if not ret:
         raise Exception('Failed to create Access mdb file. Please check file path, permission and Access driver readiness.')
     
-
+def win_connect_mdb(mdb_path):
+    if sys.platform not in ('win32','cli'):
+        raise Exception('This function is available for use in Windows only.')
+    return connect("Driver={Microsoft Access Driver (*.mdb)};DBQ="+mdb_path, unicode_results = True, readonly = False)
+    
 def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
@@ -2556,6 +2561,7 @@ def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name, c_Path)
     if not ret:
         raise Exception('Failed to compact Access mdb file. Please check file path, permission and Access driver readiness.')
+        
 
 def dataSources():
     """Return a list with [name, descrition]"""
