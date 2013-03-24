@@ -1197,7 +1197,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or NamedTupleRow
+        self.row_type_callable = row_type_callable or TupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1233,33 +1233,35 @@ class Cursor:
             
         
         self._PARAM_SQL_TYPE_LIST = [] 
-        # SQLServer's SQLDescribeParam only supports DML SQL, so avoid the SELECT statement
-        if self.connection.support_SQLDescribeParam and 'SELECT' not in query_string.upper():
-            self._free_results(NO_FREE_STATEMENT)
-            NumParams = ctypes.c_short()
-            ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
-            if ret != SQL_SUCCESS:
-                check_success(self, ret)
         
-            for col_num in range(NumParams.value):
-                ParameterNumber = ctypes.c_ushort(col_num + 1)
-                DataType = ctypes.c_short()
-                ParameterSize = ctypes.c_size_t()
-                DecimalDigits = ctypes.c_short()
-                Nullable = ctypes.c_short()
-                ret = ODBC_API.SQLDescribeParam(
-                    self.stmt_h,
-                    ParameterNumber,
-                    ADDR(DataType),
-                    ADDR(ParameterSize),
-                    ADDR(DecimalDigits),
-                    ADDR(Nullable),
-                )
+        if self.connection.support_SQLDescribeParam:
+            # SQLServer's SQLDescribeParam only supports DML SQL, so avoid the SELECT statement
+            if  'SELECT' not in query_string.upper():
+                self._free_results(NO_FREE_STATEMENT)
+                NumParams = ctypes.c_short()
+                ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
+            
+                for col_num in range(NumParams.value):
+                    ParameterNumber = ctypes.c_ushort(col_num + 1)
+                    DataType = ctypes.c_short()
+                    ParameterSize = ctypes.c_size_t()
+                    DecimalDigits = ctypes.c_short()
+                    Nullable = ctypes.c_short()
+                    ret = ODBC_API.SQLDescribeParam(
+                        self.stmt_h,
+                        ParameterNumber,
+                        ADDR(DataType),
+                        ADDR(ParameterSize),
+                        ADDR(DecimalDigits),
+                        ADDR(Nullable),
+                    )
+                    if ret != SQL_SUCCESS:
+                        check_success(self, ret)
 
-                sql_type = DataType.value
-                self._PARAM_SQL_TYPE_LIST.append(sql_type)
+                    sql_type = DataType.value
+                    self._PARAM_SQL_TYPE_LIST.append(sql_type)
         
         self.statement = query_string
 
