@@ -1197,7 +1197,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or NamedTupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1220,7 +1220,7 @@ class Cursor:
     def prepare(self, query_string):
         """prepare a query"""
         
-        self._free_results(FREE_STATEMENT)
+        #self._free_results(FREE_STATEMENT)
         
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
@@ -1233,7 +1233,8 @@ class Cursor:
             
         
         self._PARAM_SQL_TYPE_LIST = [] 
-        if self.connection.support_SQLDescribeParam:
+        # SQLServer's SQLDescribeParam only supports DML SQL, so avoid the SELECT statement
+        if self.connection.support_SQLDescribeParam and 'SELECT' not in query_string.upper():
             self._free_results(NO_FREE_STATEMENT)
             NumParams = ctypes.c_short()
             ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
@@ -1266,7 +1267,7 @@ class Cursor:
     def _BindParams(self, param_types, pram_io_list = []):
         """Create parameter buffers based on param types, and bind them to the statement"""
         # Clear the old Parameters
-        self._free_results(NO_FREE_STATEMENT)
+        #self._free_results(NO_FREE_STATEMENT)
         
         # Get the number of query parameters judged by database.
         NumParams = ctypes.c_short()
@@ -1297,7 +1298,7 @@ class Cursor:
                 ParameterBuffer = create_buffer(buf_size)                
             
             elif param_types[col_num] == 'N':
-                if self.connection.support_SQLDescribeParam:
+                if len(self._PARAM_SQL_TYPE_LIST) > 0:
                     sql_c_type = SQL_C_DEFAULT
                     sql_type = self._PARAM_SQL_TYPE_LIST[col_num]
                     buf_size = 1
@@ -1458,13 +1459,16 @@ class Cursor:
 
         if params:
             # If parameters exist, first prepare the query then executed with parameters
-            if not isinstance(params, (tuple, list, set)):
-                raise TypeError("Params must be in a list, tuple, or set")
             
+            if not isinstance(params, (tuple, list)):
+                raise TypeError("Params must be in a list, tuple, or Row")
+
+                
             if not many_mode:
                 # if called from executemany, the statement has been prepared, so no need to prepare.
                 if query_string != self.statement:
                     # if the query is not same as last query, then it is not prepared
+                    self._free_results(FREE_STATEMENT)
                     self.prepare(query_string)
             
     
@@ -1474,6 +1478,7 @@ class Cursor:
                 self._BindParams(param_types, self._pram_io_list)
             else:
                 if param_types != self._last_param_types:
+                    self._free_results(NO_FREE_STATEMENT)
                     self._BindParams(param_types)
                 
             
@@ -1602,6 +1607,7 @@ class Cursor:
     
     def execdirect(self, query_string):
         """Execute a query directly"""
+        self._free_results(FREE_STATEMENT)
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLExecDirectW(self.stmt_h, c_query_string, len(query_string))
@@ -1643,6 +1649,7 @@ class Cursor:
                 
     
     def executemany(self, query_string, params_list = [None]):
+        self._free_results(FREE_STATEMENT)
         self.prepare(query_string)
         self._last_param_types = None
         for params in params_list:
