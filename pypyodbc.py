@@ -1221,6 +1221,7 @@ class Cursor:
         """prepare a query"""
         
         self._free_results(FREE_STATEMENT)
+        
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
@@ -1264,7 +1265,7 @@ class Cursor:
 
     def _BindParams(self, param_types, pram_io_list = []):
         """Create parameter buffers based on param types, and bind them to the statement"""
-        
+        # Clear the old Parameters
         self._free_results(NO_FREE_STATEMENT)
         
         # Get the number of query parameters judged by database.
@@ -1288,10 +1289,6 @@ class Cursor:
         for col_num in range(NumParams.value):
             col_size = 0            
             buf_size = 512
-            '''
-            if param_types[col_num] == type(None):
-
-            '''
                 
             if param_types[col_num] == 'BN':
                 sql_c_type = SQL_C_BINARY
@@ -1459,13 +1456,13 @@ class Cursor:
         If parameters are not provided, only th query sting, it would be executed directly 
         """
 
-
         if params:
             # If parameters exist, first prepare the query then executed with parameters
             if not isinstance(params, (tuple, list, set)):
                 raise TypeError("Params must be in a list, tuple, or set")
             
             if not many_mode:
+                # if called from executemany, the statement has been prepared, so no need to prepare.
                 if query_string != self.statement:
                     # if the query is not same as last query, then it is not prepared
                     self.prepare(query_string)
@@ -1647,6 +1644,7 @@ class Cursor:
     
     def executemany(self, query_string, params_list = [None]):
         self.prepare(query_string)
+        self._last_param_types = None
         for params in params_list:
             self.execute(query_string, params, many_mode = True)
         self._NumOfRows()
