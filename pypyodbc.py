@@ -1220,7 +1220,7 @@ class Cursor:
     def prepare(self, query_string):
         """prepare a query"""
         
-        self._free_results(NO_FREE_STATEMENT)
+        self._free_results(FREE_STATEMENT)
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
@@ -1230,8 +1230,10 @@ class Cursor:
         if ret != SQL_SUCCESS:
             check_success(self, ret)
             
+        
         self._PARAM_SQL_TYPE_LIST = [] 
         if self.connection.support_SQLDescribeParam:
+            self._free_results(NO_FREE_STATEMENT)
             NumParams = ctypes.c_short()
             ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
             if ret != SQL_SUCCESS:
@@ -1262,6 +1264,9 @@ class Cursor:
 
     def _BindParams(self, param_types, pram_io_list = []):
         """Create parameter buffers based on param types, and bind them to the statement"""
+        
+        self._free_results(NO_FREE_STATEMENT)
+        
         # Get the number of query parameters judged by database.
         NumParams = ctypes.c_short()
         ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
@@ -1454,7 +1459,6 @@ class Cursor:
         If parameters are not provided, only th query sting, it would be executed directly 
         """
 
-        self._free_results(FREE_STATEMENT)
 
         if params:
             # If parameters exist, first prepare the query then executed with parameters
