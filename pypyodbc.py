@@ -665,14 +665,12 @@ if sys.platform not in ('cli'):
     ODBC_API.SQLBindParameter.argtypes = [
         ctypes.c_void_p, ctypes.c_ushort, ctypes.c_short,
         ctypes.c_short,  ctypes.c_short,  ctypes.c_size_t,
-        ctypes.c_short,  ctypes.c_void_p, ctypes.c_ssize_t,
-        ctypes.POINTER(ctypes.c_ssize_t),
+        ctypes.c_short,  ctypes.c_void_p, ctypes.c_ssize_t, ctypes.POINTER(ctypes.c_ssize_t),
     ]
 
     ODBC_API.SQLColAttribute.argtypes = [
         ctypes.c_void_p, ctypes.c_ushort, ctypes.c_ushort,
-        ctypes.c_void_p, ctypes.c_short, ctypes.POINTER(ctypes.c_short),
-        ctypes.POINTER(ctypes.c_ssize_t),
+        ctypes.c_void_p, ctypes.c_short, ctypes.POINTER(ctypes.c_short), ctypes.POINTER(ctypes.c_ssize_t),
     ]
 
     ODBC_API.SQLDataSources.argtypes = [
@@ -684,8 +682,7 @@ if sys.platform not in ('cli'):
     ODBC_API.SQLDescribeCol.argtypes = [
         ctypes.c_void_p, ctypes.c_ushort, ctypes.c_char_p, ctypes.c_short,
         ctypes.POINTER(ctypes.c_short), ctypes.POINTER(ctypes.c_short),
-        ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.c_short),
-        ctypes.POINTER(ctypes.c_short),
+        ctypes.POINTER(ctypes.c_size_t), ctypes.POINTER(ctypes.c_short), ctypes.POINTER(ctypes.c_short),
     ]
 
     ODBC_API.SQLDescribeParam.argtypes = [
@@ -739,14 +736,10 @@ ODBC_API.SQLColumns.argtypes = [
 
 ODBC_API.SQLConnect.argtypes = [
     ctypes.c_void_p, ctypes.c_char_p, ctypes.c_short,
-    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p,
-    ctypes.c_short,
+    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p, ctypes.c_short,
 ]
 
-
-
 ODBC_API.SQLDisconnect.argtypes = [ctypes.c_void_p]
-
 
 ODBC_API.SQLEndTran.argtypes = [
     ctypes.c_short, ctypes.c_void_p, ctypes.c_short,
@@ -768,8 +761,7 @@ ODBC_API.SQLForeignKeys.argtypes = [
     ctypes.c_void_p, ctypes.c_char_p, ctypes.c_short,
     ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p,
     ctypes.c_short, ctypes.c_char_p, ctypes.c_short,
-    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p,
-    ctypes.c_short,
+    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p, ctypes.c_short,
 ]
 
 ODBC_API.SQLFreeHandle.argtypes = [
@@ -794,8 +786,7 @@ ODBC_API.SQLPrepare.argtypes = [
 
 ODBC_API.SQLPrimaryKeys.argtypes = [
     ctypes.c_void_p, ctypes.c_char_p, ctypes.c_short,
-    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p,
-    ctypes.c_short,
+    ctypes.c_char_p, ctypes.c_short, ctypes.c_char_p, ctypes.c_short,
 ]
 
 ODBC_API.SQLProcedureColumns.argtypes = [
