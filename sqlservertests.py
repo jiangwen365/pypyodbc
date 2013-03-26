@@ -1122,7 +1122,7 @@ class SqlServerTestCase(unittest.TestCase):
         def f():
             self.cursor.execute("create table t1 (word varchar (100))")
             words = set (['a'])
-            self.cursor.execute("insert into t1 (word) VALUES (?)", [words])
+            self.cursor.execute("insert into t1 (word) VALUES (?)", words)
 
         self.assertRaises(pypyodbc.ProgrammingError, f)
 
@@ -1210,7 +1210,7 @@ class SqlServerTestCase(unittest.TestCase):
         self.cursor.execute("update t1 set n=?, blob=?", (2, None))
         row = self.cursor.execute("select * from t1").fetchone()
         self.assertEqual(row[0], 2)
-        self.assertEqual(row[0], None)
+        self.assertEqual(row[1], None)
 
 
     def test_output_conversion(self):
