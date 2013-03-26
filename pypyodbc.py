@@ -1081,7 +1081,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or NamedTupleRow
+        self.row_type_callable = row_type_callable or TupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
