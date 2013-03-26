@@ -1081,7 +1081,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or NamedTupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1116,15 +1116,45 @@ class Cursor:
             check_success(self, ret)
             
         
-        
+        self._PARAM_SQL_TYPE_LIST = [] 
         
         if self.connection.support_SQLDescribeParam:
-            NumParams = ctypes.c_short()
-            ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
-            if ret != SQL_SUCCESS:
-                check_success(self, ret)
-            self._PARAM_SQL_TYPE_LIST = [None,] * NumParams.value
+            # SQLServer's SQLDescribeParam only supports DML SQL, so avoid the SELECT statement
+            if True:# 'SELECT' not in query_string.upper():
+                #self._free_results(NO_FREE_STATEMENT)
+                NumParams = ctypes.c_short()
+                ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
+                if ret != SQL_SUCCESS:
+                    check_success(self, ret)
+            
+                for col_num in range(NumParams.value):
+                    ParameterNumber = ctypes.c_ushort(col_num + 1)
+                    DataType = ctypes.c_short()
+                    ParameterSize = ctypes.c_size_t()
+                    DecimalDigits = ctypes.c_short()
+                    Nullable = ctypes.c_short()
+                    ret = ODBC_API.SQLDescribeParam(
+                        self.stmt_h,
+                        ParameterNumber,
+                        ADDR(DataType),
+                        ADDR(ParameterSize),
+                        ADDR(DecimalDigits),
+                        ADDR(Nullable),
+                    )
+                    if ret != SQL_SUCCESS:
+                        try:
+                            check_success(self, ret)
+                        except DatabaseError, e:
+                            if e[0] == '07009':
+                                self._PARAM_SQL_TYPE_LIST = [] 
+                                break
+                            else:
+                                raise e
+                        except:
+                            raise e
 
+                    sql_type = DataType.value
+                    self._PARAM_SQL_TYPE_LIST.append(sql_type)
         
         self.statement = query_string
 
@@ -1163,36 +1193,16 @@ class Cursor:
                 ParameterBuffer = create_buffer(buf_size)                
             
             elif param_types[col_num] == 'N':
-                if self.connection.support_SQLDescribeParam:
-                    if self._PARAM_SQL_TYPE_LIST[col_num] is None:            
-                        # SQLServer's SQLDescribeParam only supports DML SQL
-                        if len([1 for x in ('insert','update','delete') if x in self.statement.lower()]) > 0:
-                            ParameterNumber = ctypes.c_ushort(col_num + 1)
-                            DataType = ctypes.c_short()
-                            ParameterSize = ctypes.c_size_t()
-                            DecimalDigits = ctypes.c_short()
-                            Nullable = ctypes.c_short()
-                            ret = ODBC_API.SQLDescribeParam(
-                                self.stmt_h,
-                                ParameterNumber,
-                                ADDR(DataType),
-                                ADDR(ParameterSize),
-                                ADDR(DecimalDigits),
-                                ADDR(Nullable),
-                            )
-                            if ret != SQL_SUCCESS:
-                                check_success(self, ret)
-                            self._PARAM_SQL_TYPE_LIST[col_num] = DataType.value
-                        else:
-                            self._PARAM_SQL_TYPE_LIST[col_num] = SQL_CHAR
-                    
+                if len(self._PARAM_SQL_TYPE_LIST) > 0:
+                    sql_c_type = SQL_C_DEFAULT
                     sql_type = self._PARAM_SQL_TYPE_LIST[col_num]
-
+                    buf_size = 1
+                    ParameterBuffer = create_buffer(buf_size)
                 else:
+                    sql_c_type = SQL_C_CHAR
                     sql_type = SQL_CHAR
-                sql_c_type = SQL_C_DEFAULT
-                buf_size = 1                 
-                ParameterBuffer = create_buffer(buf_size)   
+                    buf_size = 1                 
+                    ParameterBuffer = create_buffer(buf_size)   
 
             elif param_types[col_num] == 'lu':
                 sql_c_type = SQL_C_WCHAR
@@ -1493,6 +1503,8 @@ class Cursor:
     def execdirect(self, query_string):
         """Execute a query directly"""
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
+        self.statement = None
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLExecDirectW(self.stmt_h, c_query_string, len(query_string))
@@ -1503,7 +1515,6 @@ class Cursor:
         self._NumOfRows()
         self._UpdateDesc()
         #self._BindCols()
-        self.statement = None
         return self
         
         
@@ -1840,6 +1851,7 @@ class Cursor:
             tableType = string_p(tableType)
         
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
         ret = API_f(self.stmt_h,
                                 catalog, l_catalog,
@@ -1881,6 +1893,7 @@ class Cursor:
             column = string_p(column)
             
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -1921,6 +1934,7 @@ class Cursor:
             table = string_p(table)
             
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -1965,6 +1979,7 @@ class Cursor:
             foreignSchema = string_p(foreignSchema)
         
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
         
         ret = API_f(self.stmt_h,
@@ -2007,6 +2022,7 @@ class Cursor:
             
         
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -2045,6 +2061,7 @@ class Cursor:
             
         
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
             
         ret = API_f(self.stmt_h,
@@ -2089,6 +2106,7 @@ class Cursor:
             Reserved = SQL_ENSURE
         
         self._free_results(FREE_STATEMENT)
+        self._last_param_types = None
         self.statement = None
         
         ret = API_f(self.stmt_h,
