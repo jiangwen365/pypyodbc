@@ -1159,9 +1159,9 @@ class Cursor:
                                 self._PARAM_SQL_TYPE_LIST = [] 
                                 break
                             else:
-                                raise e
+                                raise sys.exc_info()[1]
                         except:
-                            raise e
+                            raise sys.exc_info()[1]
 
                     self._PARAM_SQL_TYPE_LIST.append((DataType.value,DecimalDigits.value))
         
