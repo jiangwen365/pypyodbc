@@ -1082,7 +1082,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or NamedTupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1378,7 +1378,13 @@ class Cursor:
             if call_mode:
                 self._BindParams(param_types, self._pram_io_list)
             else:
-                if param_types != self._last_param_types:
+                if self._last_param_types is None:
+                    self._free_results(NO_FREE_STATEMENT)
+                    self._BindParams(param_types)
+                elif len(param_types) != len(self._last_param_types):
+                    self._free_results(NO_FREE_STATEMENT)
+                    self._BindParams(param_types)
+                elif param_types != [param_types[i][0] == 'N' and param_types[i] or self._last_param_types[i] for i in range(len(param_types))]:
                     self._free_results(NO_FREE_STATEMENT)
                     self._BindParams(param_types)
                 
