@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.0.alpha'
+version = '1.1.0.dev'
 lowercase=True
 
 DEBUG = 0
@@ -121,6 +121,7 @@ SQL_ALL_TYPES = 0
 SQL_SIGNED_OFFSET = -20
 SQL_SS_VARIANT = -150
 SQL_SS_UDT = -151
+SQL_SS_XML = -152
 SQL_SS_TIME2 = -154
 
 SQL_C_CHAR =            SQL_CHAR =          1
@@ -581,6 +582,7 @@ SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CH
 SQL_TYPE_TIME       : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20     ),
 SQL_TYPE_TIMESTAMP  : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30      ), 
 SQL_SS_VARIANT      : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048   ), 
+SQL_SS_XML          : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500  ),
 SQL_SS_UDT          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120   ),
 }
 
@@ -887,7 +889,7 @@ def ctrl_err(ht, h, val_ret, ansi):
             NativeError, Message, len(Message), ADDR(Buffer_len))
         if ret == SQL_NO_DATA_FOUND:
             #No more data, I can raise
-            #if DEBUG:print(err_list[0][1])
+            #print(err_list[0][1])
             state = err_list[0][0]
             err_text = raw_s('[')+state+raw_s('] ')+err_list[0][1]
             if state[:2] in (raw_s('24'),raw_s('25'),raw_s('42')):
@@ -1024,50 +1026,49 @@ BinaryNull = BinaryNullType()
 
 # The get_type function is used to determine if parameters need to be re-binded 
 # against the changed parameter types
-# 'b' for bool, 'lu' for long unicode string, 'su' for short unicode string
-# 'ls' for long 8 bit string, 'ss' for short 8 bit string, 'l' for big integer, 'i' for normal integer
-# 'f' for float, a tuple for Decimal, 't' for datetime.time, 'd' for datetime.datetime, 'dt' for datetime.datetime
+# 'b' for bool, 'U' for long unicode string, 'u' for short unicode string
+# 'S' for long 8 bit string, 's' for short 8 bit string, 'l' for big integer, 'i' for normal integer
+# 'f' for float, 'D' for Decimal, 't' for datetime.time, 'd' for datetime.datetime, 'dt' for datetime.datetime
 # 'bi' for binary
 def get_type(v):    
 
     if isinstance(v, bool):
-        return 'b'
+        return ('b',)
     elif isinstance(v, unicode):
         if len(v) >= 255:
-            return  'lu'
+            return  ('U',(len(v)//1000+1)*1000)
         else:
-            return 'su'
+            return ('u',)
     elif isinstance(v, (str_8b,str)):
         if len(v) >= 255:
-            return  'ls'
+            return  ('S',(len(v)//1000+1)*1000)
         else:
-            return  'ss'
+            return  ('s',)
     elif isinstance(v, (int, long)):
         #SQL_BIGINT defination: http://msdn.microsoft.com/en-us/library/ms187745.aspx
         if v > 2147483647 or v < -2147483648:
-            return  'l'
+            return  ('l',)
         else:
-            return  'i'
+            return  ('i',)
     elif isinstance(v, float):
-        return 'f'
+        return ('f',)
     elif isinstance(v, BinaryNullType):
-        return 'BN'
+        return ('BN',)
     elif v is None:
-        return 'N'
+        return ('N',)
     elif isinstance(v, Decimal):
-        sv = str(v).replace('-','').strip('0').split('.')
-        if len(sv)>1:
-            return  (len(sv[0])+len(sv[1]),len(sv[1]))
-        else:
-            return  (len(sv[0]),0)
+        t = v.as_tuple() #1.23 -> (1,2,3),-2 , 1.23*E7 -> (1,2,3),5
+        return  ('D',(len(t[1]),0 - t[2])) # number of digits, and number of decimal digits
+
+        
     elif isinstance (v, datetime.datetime):
-        return 'dt'
+        return ('dt',)
     elif isinstance (v, datetime.date):
-        return 'd'
+        return ('d',)
     elif isinstance(v, datetime.time):
-        return 't'
+        return ('t',)
     elif isinstance (v, (bytearray, buffer)):
-        return 'bi'
+        return ('bi',(len(v)//1000+1)*1000)
         
     return type(v)
 
@@ -1153,8 +1154,7 @@ class Cursor:
                         except:
                             raise e
 
-                    sql_type = DataType.value
-                    self._PARAM_SQL_TYPE_LIST.append(sql_type)
+                    self._PARAM_SQL_TYPE_LIST.append((DataType.value,DecimalDigits.value))
         
         self.statement = query_string
 
@@ -1183,70 +1183,71 @@ class Cursor:
         # calling SQLBindParam.
         temp_holder = []
         for col_num in range(NumParams.value):
-            col_size = 0            
+            dec_num = 0            
             buf_size = 512
                 
-            if param_types[col_num] == 'BN':
-                sql_c_type = SQL_C_BINARY
-                sql_type = SQL_VARBINARY 
-                buf_size = 1                 
-                ParameterBuffer = create_buffer(buf_size)                
-            
-            elif param_types[col_num] == 'N':
-                if len(self._PARAM_SQL_TYPE_LIST) > 0:
-                    sql_c_type = SQL_C_DEFAULT
-                    sql_type = self._PARAM_SQL_TYPE_LIST[col_num]
-                    buf_size = 1
-                    ParameterBuffer = create_buffer(buf_size)
-                else:
-                    sql_c_type = SQL_C_CHAR
-                    sql_type = SQL_CHAR
-                    buf_size = 1                 
-                    ParameterBuffer = create_buffer(buf_size)   
+            if param_types[col_num][0] == 'u':
+                sql_c_type = SQL_C_WCHAR
+                sql_type = SQL_WVARCHAR 
+                buf_size = 255                 
+                ParameterBuffer = create_buffer_u(buf_size)                
+                    
+            elif param_types[col_num][0] == 's':
+                sql_c_type = SQL_C_CHAR
+                sql_type = SQL_VARCHAR
+                buf_size = 255                 
+                ParameterBuffer = create_buffer(buf_size)
 
-            elif param_types[col_num] == 'lu':
+
+            elif param_types[col_num][0] == 'U':
                 sql_c_type = SQL_C_WCHAR
                 sql_type = SQL_WLONGVARCHAR
-                buf_size = len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500
+                buf_size = param_types[col_num][1]#len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500
                 ParameterBuffer = create_buffer_u(buf_size)
 
-            elif param_types[col_num] == 'ls':
+            elif param_types[col_num][0] == 'S':
                 sql_c_type = SQL_C_CHAR
                 sql_type = SQL_LONGVARCHAR
-                buf_size = len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500
+                buf_size = param_types[col_num][1]#len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500
                 ParameterBuffer = create_buffer(buf_size)
             
-            elif param_types[col_num] == 'i':
+            # bool subclasses int, thus has to go first
+            elif param_types[col_num][0] == 'b':
+                sql_c_type = SQL_C_CHAR
+                sql_type = SQL_BIT
+                buf_size = SQL_data_type_dict[sql_type][4]
+                ParameterBuffer = create_buffer(buf_size)
+                
+            elif param_types[col_num][0] == 'i':
                 sql_c_type = SQL_C_CHAR            
                 sql_type = SQL_INTEGER    
                 buf_size = SQL_data_type_dict[sql_type][4]             
                 ParameterBuffer = create_buffer(buf_size)           
                 
-            elif param_types[col_num] == 'l':
+            elif param_types[col_num][0] == 'l':
                 sql_c_type = SQL_C_CHAR           
                 sql_type = SQL_BIGINT         
                 buf_size = SQL_data_type_dict[sql_type][4]         
                 ParameterBuffer = create_buffer(buf_size)
             
 
-            elif type(param_types[col_num]) == tuple: #Decimal
+            elif param_types[col_num][0] == 'D': #Decimal
                 sql_c_type = SQL_C_CHAR
                 sql_type = SQL_NUMERIC
-                buf_size = param_types[col_num][0]
+                digit_num, dec_num = param_types[col_num][1]
+                if dec_num > 0:
+                    # has decimal
+                    buf_size = digit_num 
+                    dec_num = dec_num
+                else:
+                    # no decimal
+                    buf_size = digit_num - dec_num 
+                    dec_num = 0
 
-                ParameterBuffer = create_buffer(buf_size+4)
-                col_size = param_types[col_num][1]
-                #if DEBUG:print(param_types[col_num][0],param_types[col_num][1])
-
-            # bool subclasses int, thus has to go first
-            elif param_types[col_num] == 'b':
-                sql_c_type = SQL_C_CHAR
-                sql_type = SQL_BIT
-                buf_size = SQL_data_type_dict[sql_type][4]
-                ParameterBuffer = create_buffer(buf_size)
+                ParameterBuffer = create_buffer(buf_size + 4)# add extra length for sign and dot
 
                 
-            elif param_types[col_num] == 'f':
+            elif param_types[col_num][0] == 'f':
                 sql_c_type = SQL_C_CHAR
                 sql_type = SQL_DOUBLE                
                 buf_size = SQL_data_type_dict[sql_type][4]
@@ -1254,15 +1255,15 @@ class Cursor:
                 
                 
             # datetime subclasses date, thus has to go first
-            elif param_types[col_num] == 'dt':
+            elif param_types[col_num][0] == 'dt':
                 sql_c_type = SQL_C_CHAR
                 sql_type = SQL_TYPE_TIMESTAMP
                 buf_size = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][0]                
                 ParameterBuffer = create_buffer(buf_size)
-                col_size = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][1]
+                dec_num = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][1]
                 
                 
-            elif param_types[col_num] == 'd':
+            elif param_types[col_num][0] == 'd':
                 sql_c_type = SQL_C_CHAR
                 if SQL_TYPE_DATE in self.connection.type_size_dic:
                     #if DEBUG:print('conx.type_size_dic.has_key(SQL_TYPE_DATE)')
@@ -1270,7 +1271,7 @@ class Cursor:
                     buf_size = self.connection.type_size_dic[SQL_TYPE_DATE][0]
                     
                     ParameterBuffer = create_buffer(buf_size)
-                    col_size = self.connection.type_size_dic[SQL_TYPE_DATE][1]
+                    dec_num = self.connection.type_size_dic[SQL_TYPE_DATE][1]
                     
                 else:
                     # SQL Sever <2008 doesn't have a DATE type.
@@ -1279,42 +1280,47 @@ class Cursor:
                     ParameterBuffer = create_buffer(buf_size)
                     
     
-            elif param_types[col_num] == 't':
+            elif param_types[col_num][0] == 't':
                 sql_c_type = SQL_C_CHAR
                 if SQL_TYPE_TIME in self.connection.type_size_dic:
                     sql_type = SQL_TYPE_TIME
                     buf_size = self.connection.type_size_dic[SQL_TYPE_TIME][0]                    
                     ParameterBuffer = create_buffer(buf_size)
-                    col_size = self.connection.type_size_dic[SQL_TYPE_TIME][1]                   
+                    dec_num = self.connection.type_size_dic[SQL_TYPE_TIME][1]                   
                 elif SQL_SS_TIME2 in self.connection.type_size_dic:
                     # TIME type added in SQL Server 2008
                     sql_type = SQL_SS_TIME2
                     buf_size = self.connection.type_size_dic[SQL_SS_TIME2][0]
                     ParameterBuffer = create_buffer(buf_size)
-                    col_size = self.connection.type_size_dic[SQL_SS_TIME2][1]
+                    dec_num = self.connection.type_size_dic[SQL_SS_TIME2][1]
                 else:
                     # SQL Sever <2008 doesn't have a TIME type.
                     sql_type = SQL_TYPE_TIMESTAMP
                     buf_size = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][0]                    
                     ParameterBuffer = create_buffer(buf_size)
-                    col_size = 3
+                    dec_num = 3
                     
-            elif param_types[col_num] == 'su':
-                sql_c_type = SQL_C_WCHAR
-                sql_type = SQL_WVARCHAR 
-                buf_size = 255                 
-                ParameterBuffer = create_buffer_u(buf_size)                
-                    
-            elif param_types[col_num] == 'ss':
-                sql_c_type = SQL_C_CHAR
-                sql_type = SQL_VARCHAR
-                buf_size = 255                 
-                ParameterBuffer = create_buffer(buf_size)
-
-            elif param_types[col_num] == 'bi':
+            elif param_types[col_num][0] == 'BN':
+                sql_c_type = SQL_C_BINARY
+                sql_type = SQL_VARBINARY 
+                buf_size = 1                 
+                ParameterBuffer = create_buffer(buf_size)                
+            
+            elif param_types[col_num][0] == 'N':
+                if len(self._PARAM_SQL_TYPE_LIST) > 0:
+                    sql_c_type = SQL_C_DEFAULT
+                    sql_type = self._PARAM_SQL_TYPE_LIST[col_num][0]
+                    buf_size = 1
+                    ParameterBuffer = create_buffer(buf_size)
+                else:
+                    sql_c_type = SQL_C_CHAR
+                    sql_type = SQL_CHAR
+                    buf_size = 1                 
+                    ParameterBuffer = create_buffer(buf_size) 
+            elif param_types[col_num][0] == 'bi':
                 sql_c_type = SQL_C_BINARY
                 sql_type = SQL_LONGVARBINARY 
-                buf_size = len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500                
+                buf_size = param_types[col_num][1]#len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500                
                 ParameterBuffer = create_buffer(buf_size)
             
                 
@@ -1324,9 +1330,9 @@ class Cursor:
                 buf_size = len(self._inputsizers)>col_num and self._inputsizers[col_num] or 20500                
                 ParameterBuffer = create_buffer(buf_size)
                 
-            temp_holder.append((sql_c_type, sql_type, buf_size, col_size, ParameterBuffer))
+            temp_holder.append((sql_c_type, sql_type, buf_size, dec_num, ParameterBuffer))
 
-        for col_num, (sql_c_type, sql_type, buf_size, col_size, ParameterBuffer) in enumerate(temp_holder):
+        for col_num, (sql_c_type, sql_type, buf_size, dec_num, ParameterBuffer) in enumerate(temp_holder):
             BufferLen = ctypes.c_ssize_t(buf_size)
             LenOrIndBuf = ctypes.c_ssize_t()
                 
@@ -1336,7 +1342,7 @@ class Cursor:
                 InputOutputType = pram_io_list[col_num]
 
             ret = SQLBindParameter(self.stmt_h, col_num + 1, InputOutputType, sql_c_type, sql_type, buf_size,\
-                    col_size, ADDR(ParameterBuffer), BufferLen,ADDR(LenOrIndBuf))
+                    dec_num, ADDR(ParameterBuffer), BufferLen,ADDR(LenOrIndBuf))
             if ret != SQL_SUCCESS:    
                 check_success(self, ret)
             # Append the value buffer and the lenth buffer to the array
@@ -1382,25 +1388,25 @@ class Cursor:
             for param_buffer, param_buffer_len, sql_type in self._ParamBufferList:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
-                if param_types[col_num] in ('N','BN'):
+                if param_types[col_num][0] in ('N','BN'):
                     c_char_buf = BLANK_BYTE
                     c_buf_len = SQL_NULL_DATA
                     
-                elif param_types[col_num] in ('i','l','f'):
+                elif param_types[col_num][0] in ('i','l','f'):
                     if py_v3:
                         c_char_buf = bytes(str(param_val),'ascii')
                     else:
                         c_char_buf = str(param_val)
                     c_buf_len = len(c_char_buf)
                     
-                elif param_types[col_num] in ('ss','ls'):
+                elif param_types[col_num][0] in ('s','S'):
                     c_char_buf = param_val
                     c_buf_len = len(c_char_buf)
-                elif param_types[col_num] in ('su','lu'):
+                elif param_types[col_num][0] in ('u','U'):
                     c_char_buf = ucs2_buf(param_val)
                     c_buf_len = len(c_char_buf)
                     
-                elif param_types[col_num] == 'dt':
+                elif param_types[col_num][0] == 'dt':
                     max_len = self.connection.type_size_dic[SQL_TYPE_TIMESTAMP][0]
                     datetime_str = param_val.strftime('%Y-%m-%d %H:%M:%S.%f')
                     c_char_buf = datetime_str[:max_len]
@@ -1410,7 +1416,7 @@ class Cursor:
                     c_buf_len = len(c_char_buf)
                     # print c_buf_len, c_char_buf
                     
-                elif param_types[col_num] == 'd':
+                elif param_types[col_num][0] == 'd':
                     if SQL_TYPE_DATE in self.connection.type_size_dic:
                         max_len = self.connection.type_size_dic[SQL_TYPE_DATE][0]
                     else:
@@ -1421,7 +1427,7 @@ class Cursor:
                     c_buf_len = len(c_char_buf)
                     #print c_char_buf
                     
-                elif param_types[col_num] == 't':
+                elif param_types[col_num][0] == 't':
                     if SQL_TYPE_TIME in self.connection.type_size_dic:
                         max_len = self.connection.type_size_dic[SQL_TYPE_TIME][0]
                         c_char_buf = param_val.isoformat()[:max_len]
@@ -1440,7 +1446,7 @@ class Cursor:
                         c_char_buf = bytes(c_char_buf,'ascii')
                     #print c_buf_len, c_char_buf
                     
-                elif param_types[col_num] == 'b':
+                elif param_types[col_num][0] == 'b':
                     if param_val == True:
                         c_char_buf = '1'
                     else:
@@ -1449,14 +1455,27 @@ class Cursor:
                         c_char_buf = bytes(c_char_buf,'ascii')
                     c_buf_len = 1
                     
-                elif type(param_types[col_num]) == tuple: #Decimal
-                    if py_v3:
-                        c_char_buf = bytes(str(param_val),'ascii')
+                elif param_types[col_num][0] == 'D': #Decimal
+                    sign = param_val.as_tuple()[0] == 0 and '+' or '-'
+                    digit_string = ''.join([str(x) for x in param_val.as_tuple()[1]])
+                    digit_num, dec_num = param_types[col_num][1]
+                    if dec_num > 0:
+                        # has decimal
+                        left_part = digit_string[:digit_num - dec_num]
+                        right_part = digit_string[0-dec_num:]
                     else:
-                        c_char_buf = str(param_val)
+                        # no decimal
+                        left_part = digit_string + '0'*(0-dec_num)
+                        right_part = ''
+                    v = ''.join((sign, left_part,'.', right_part))
+
+                    if py_v3:
+                        c_char_buf = bytes(v,'ascii')
+                    else:
+                        c_char_buf = v
                     c_buf_len = len(c_char_buf)
                     
-                elif param_types[col_num] == 'bi':
+                elif param_types[col_num][0] == 'bi':
                     c_char_buf = str(param_val)
                     c_buf_len = len(c_char_buf)
                     
@@ -1464,14 +1483,14 @@ class Cursor:
                     c_char_buf = param_val
             
     
-                if param_types[col_num] == 'bi':
+                if param_types[col_num][0] == 'bi':
                     param_buffer.raw = str_8b(param_val)
                     
                 else:
                     #print (type(param_val),param_buffer, param_buffer.value)
                     param_buffer.value = c_char_buf
                     
-                if param_types[col_num] in ('lu','su','ls','ss'):
+                if param_types[col_num][0] in ('U','u','S','s'):
                     #ODBC driver will find NUL in unicode and string to determine their length
                     param_buffer_len.value = SQL_NTS
                 else:
@@ -2348,7 +2367,7 @@ class Connection:
         self.support_SQLDescribeParam = False
         try:
             driver_name = self.getinfo(SQL_DRIVER_NAME)
-            if len([x for x in ('SQLSRV','libsqlncli') if x in driver_name]) > 0:
+            if len([1 for x in ('SQLSRV','ncli','libsqlncli') if x in driver_name]) > 0:
                 self.support_SQLDescribeParam = True
         except:
             pass
@@ -2477,10 +2496,13 @@ def win_create_mdb(mdb_path, sort_order = "General\0\0"):
     if not ret:
         raise Exception('Failed to create Access mdb file. Please check file path, permission and Access driver readiness.')
     
+    
 def win_connect_mdb(mdb_path):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
     return connect("Driver={Microsoft Access Driver (*.mdb)};DBQ="+mdb_path, unicode_results = True, readonly = False)
+    
+    
     
 def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     if sys.platform not in ('win32','cli'):
