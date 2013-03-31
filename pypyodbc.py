@@ -965,6 +965,14 @@ def TupleRow(cursor):
     """
     class Row(tuple):
         cursor_description = cursor.description
+        
+        def get(self, field):
+            if not hasattr(self, 'field_dict'):
+                self.field_dict = {}
+                for i,item in enumerate(self):
+                    self.field_dict[self.cursor_description[i][0]] = item
+            return self.field_dict.get(field)
+            
 
     return Row
 
@@ -1082,7 +1090,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or NamedTupleRow
+        self.row_type_callable = row_type_callable or TupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
