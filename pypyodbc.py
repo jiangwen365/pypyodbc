@@ -1153,8 +1153,9 @@ class Cursor:
                     if ret != SQL_SUCCESS:
                         try:
                             check_success(self, ret)
-                        except DatabaseError, e:
-                            if e[0] == '07009':
+                        except DatabaseError:
+                            
+                            if sys.exc_info()[1][0] == '07009':
                                 self._PARAM_SQL_TYPE_LIST = [] 
                                 break
                             else:
@@ -1402,10 +1403,10 @@ class Cursor:
             for param_buffer, param_buffer_len, sql_type in self._ParamBufferList:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
-                if param_types[col_num][0] in ('N','BN'):
-                    c_char_buf = BLANK_BYTE
-                    c_buf_len = SQL_NULL_DATA
-                    
+                if param_types[col_num][0] in ('N','BN') or param_val == None:
+                    param_buffer_len.value = SQL_NULL_DATA
+                    col_num += 1
+                    continue
                 elif param_types[col_num][0] in ('i','l','f'):
                     if py_v3:
                         c_char_buf = bytes(str(param_val),'ascii')
@@ -1503,7 +1504,7 @@ class Cursor:
                 else:
                     #print (type(param_val),param_buffer, param_buffer.value)
                     param_buffer.value = c_char_buf
-                    
+
                 if param_types[col_num][0] in ('U','u','S','s'):
                     #ODBC driver will find NUL in unicode and string to determine their length
                     param_buffer_len.value = SQL_NTS
