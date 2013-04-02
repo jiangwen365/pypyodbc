@@ -1393,7 +1393,7 @@ class Cursor:
                 elif len(param_types) != len(self._last_param_types):
                     self._free_results(NO_FREE_STATEMENT)
                     self._BindParams(param_types)
-                elif param_types != [param_types[i][0] == 'N' and param_types[i] or self._last_param_types[i] for i in range(len(param_types))]:
+                elif sum([p_type[0] != 'N' and p_type != self._last_param_types[i] for i,p_type in enumerate(param_types)]) > 0:
                     self._free_results(NO_FREE_STATEMENT)
                     self._BindParams(param_types)
                 
