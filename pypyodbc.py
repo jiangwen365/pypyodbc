@@ -1403,7 +1403,7 @@ class Cursor:
             for param_buffer, param_buffer_len, sql_type in self._ParamBufferList:
                 c_char_buf, c_buf_len = '', 0
                 param_val = params[col_num]
-                if param_types[col_num][0] in ('N','BN') or param_val == None:
+                if param_types[col_num][0] in ('N','BN'):
                     param_buffer_len.value = SQL_NULL_DATA
                     col_num += 1
                     continue
