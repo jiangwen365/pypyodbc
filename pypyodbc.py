@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.1dev'
+version = '1.1.1'
 lowercase=True
 
 DEBUG = 0
@@ -975,7 +975,12 @@ def TupleRow(cursor):
                     self.field_dict[self.cursor_description[i][0]] = item
             return self.field_dict.get(field)
             
-
+        def __getitem__(self, field):
+            if isinstance(field, (unicode,str)):
+                return self.get(field)
+            else:
+                return tuple.__getitem__(self,field)
+            
     return Row
 
 
