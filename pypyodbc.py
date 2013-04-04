@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.0.dev'
+version = '1.1.1dev'
 lowercase=True
 
 DEBUG = 0
@@ -104,45 +104,6 @@ SQL_RESET_PARAMS = 3
 SQL_UNBIND = 2
 SQL_CLOSE = 0
 
-SQL_TYPE_NULL = 0
-SQL_DECIMAL = 3
-SQL_FLOAT = 6
-SQL_DATE = 9
-SQL_TIME = 10
-SQL_TIMESTAMP = 11
-SQL_VARCHAR = 12
-SQL_LONGVARCHAR = -1
-SQL_VARBINARY = -3
-SQL_LONGVARBINARY = -4
-SQL_BIGINT = -5
-SQL_WVARCHAR = -9
-SQL_WLONGVARCHAR = -10
-SQL_ALL_TYPES = 0
-SQL_SIGNED_OFFSET = -20
-SQL_SS_VARIANT = -150
-SQL_SS_UDT = -151
-SQL_SS_XML = -152
-SQL_SS_TIME2 = -154
-
-SQL_C_CHAR =            SQL_CHAR =          1
-SQL_C_NUMERIC =         SQL_NUMERIC =       2
-SQL_C_LONG =            SQL_INTEGER =       4
-SQL_C_SLONG =           SQL_C_LONG + SQL_SIGNED_OFFSET
-SQL_C_SHORT =           SQL_SMALLINT =      5
-SQL_C_FLOAT =           SQL_REAL =          7
-SQL_C_DOUBLE =          SQL_DOUBLE =        8
-SQL_C_TYPE_DATE =       SQL_TYPE_DATE =     91
-SQL_C_TYPE_TIME =       SQL_TYPE_TIME =     92
-SQL_C_BINARY =          SQL_BINARY =        -2
-SQL_C_SBIGINT =         SQL_BIGINT + SQL_SIGNED_OFFSET        
-SQL_C_TINYINT =         SQL_TINYINT =       -6
-SQL_C_BIT =             SQL_BIT =           -7
-SQL_C_WCHAR =           SQL_WCHAR =         -8
-SQL_C_GUID =            SQL_GUID =          -11  
-SQL_C_TYPE_TIMESTAMP =  SQL_TYPE_TIMESTAMP = 93
-SQL_C_DEFAULT = 99
-
-SQL_DESC_DISPLAY_SIZE = SQL_COLUMN_DISPLAY_SIZE
 
 
 
@@ -520,6 +481,47 @@ if sys.platform not in ('win32','cli'):
 
 #################
 # Database value to Python data type mappings
+
+
+SQL_TYPE_NULL = 0
+SQL_DECIMAL = 3
+SQL_FLOAT = 6
+SQL_DATE = 9
+SQL_TIME = 10
+SQL_TIMESTAMP = 11
+SQL_VARCHAR = 12
+SQL_LONGVARCHAR = -1
+SQL_VARBINARY = -3
+SQL_LONGVARBINARY = -4
+SQL_BIGINT = -5
+SQL_WVARCHAR = -9
+SQL_WLONGVARCHAR = -10
+SQL_ALL_TYPES = 0
+SQL_SIGNED_OFFSET = -20
+SQL_SS_VARIANT = -150
+SQL_SS_UDT = -151
+SQL_SS_XML = -152
+SQL_SS_TIME2 = -154
+
+SQL_C_CHAR =            SQL_CHAR =          1
+SQL_C_NUMERIC =         SQL_NUMERIC =       2
+SQL_C_LONG =            SQL_INTEGER =       4
+SQL_C_SLONG =           SQL_C_LONG + SQL_SIGNED_OFFSET
+SQL_C_SHORT =           SQL_SMALLINT =      5
+SQL_C_FLOAT =           SQL_REAL =          7
+SQL_C_DOUBLE =          SQL_DOUBLE =        8
+SQL_C_TYPE_DATE =       SQL_TYPE_DATE =     91
+SQL_C_TYPE_TIME =       SQL_TYPE_TIME =     92
+SQL_C_BINARY =          SQL_BINARY =        -2
+SQL_C_SBIGINT =         SQL_BIGINT + SQL_SIGNED_OFFSET        
+SQL_C_TINYINT =         SQL_TINYINT =       -6
+SQL_C_BIT =             SQL_BIT =           -7
+SQL_C_WCHAR =           SQL_WCHAR =         -8
+SQL_C_GUID =            SQL_GUID =          -11  
+SQL_C_TYPE_TIMESTAMP =  SQL_TYPE_TIMESTAMP = 93
+SQL_C_DEFAULT = 99
+
+SQL_DESC_DISPLAY_SIZE = SQL_COLUMN_DISPLAY_SIZE
 
 def dttm_cvt(x):
     if py_v3:
