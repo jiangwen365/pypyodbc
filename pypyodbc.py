@@ -2593,7 +2593,7 @@ def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     
     #COMPACT_DB=<source path> <destination path> <sort order>
     ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
-    driver_name = "Microsoft Access Driver (*.mdb)"
+    #driver_name = "Microsoft Access Driver (*.mdb)"
     if py_v3:
         c_Path = bytes("COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order,'mbcs')
         #driver_name = bytes(driver_name,'mbcs')
