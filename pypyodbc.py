@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.1'
+version = '1.1.2'
 lowercase=True
 
 DEBUG = 0
@@ -621,6 +621,8 @@ funcs_with_ret = [
     "SQLDisconnect",
     "SQLDriverConnect",
     "SQLDriverConnectW",
+    "SQLDrivers",
+    "SQLDriversW",
     "SQLEndTran",
     "SQLExecDirect",
     "SQLExecDirectW",
@@ -699,6 +701,12 @@ if sys.platform not in ('cli'):
         ctypes.c_void_p, ctypes.c_void_p, ctypes.c_char_p,
         ctypes.c_short, ctypes.c_char_p, ctypes.c_short,
         ctypes.POINTER(ctypes.c_short), ctypes.c_ushort,
+    ]
+
+    ODBC_API.SQLDrivers.argtypes = [
+        ctypes.c_void_p, ctypes.c_ushort,
+        ctypes.c_char_p, ctypes.c_short, ctypes.POINTER(ctypes.c_short), 
+        ctypes.c_char_p, ctypes.c_short, ctypes.POINTER(ctypes.c_short),
     ]
 
     ODBC_API.SQLGetData.argtypes = [
@@ -842,6 +850,7 @@ ODBC_API.SQLConnectW.argtypes = to_wchar(ODBC_API.SQLConnect.argtypes)
 ODBC_API.SQLDataSourcesW.argtypes = to_wchar(ODBC_API.SQLDataSources.argtypes)
 ODBC_API.SQLDescribeColW.argtypes = to_wchar(ODBC_API.SQLDescribeCol.argtypes)
 ODBC_API.SQLDriverConnectW.argtypes = to_wchar(ODBC_API.SQLDriverConnect.argtypes)
+ODBC_API.SQLDriversW.argtypes = to_wchar(ODBC_API.SQLDrivers.argtypes)
 ODBC_API.SQLExecDirectW.argtypes = to_wchar(ODBC_API.SQLExecDirect.argtypes)
 ODBC_API.SQLForeignKeysW.argtypes = to_wchar(ODBC_API.SQLForeignKeys.argtypes)
 ODBC_API.SQLPrepareW.argtypes = to_wchar(ODBC_API.SQLPrepare.argtypes)
@@ -2502,15 +2511,52 @@ def connect(connectString = '', autocommit = False, ansi = False, timeout = 0, u
     return odbc(connectString, autocommit, ansi, timeout, unicode_results, readonly, kargs)
 '''
 
+def drivers():
+    if sys.platform not in ('win32','cli'):
+        raise Exception('This function is available for use in Windows only.')
+    try:
+        lock.acquire()
+        if shared_env_h is None:
+            AllocateEnv()
+    finally:
+        lock.release()
+    
+    DriverDescription = create_buffer_u(1000)
+    BufferLength1 = ctypes.c_short(1000)
+    DescriptionLength = ctypes.c_short()
+    DriverAttributes = create_buffer_u(1000)
+    BufferLength2 = ctypes.c_short(1000)
+    AttributesLength = ctypes.c_short()
+    ret = SQL_SUCCESS
+    DriverList = []
+    Direction = SQL_FETCH_FIRST
+    while ret != SQL_NO_DATA:
+        ret = ODBC_API.SQLDriversW(shared_env_h, Direction , DriverDescription , BufferLength1
+                    , ADDR(DescriptionLength), DriverAttributes, BufferLength2, ADDR(AttributesLength))
+        check_success(shared_env_h, ret)
+        DriverList.append(DriverDescription.value)
+        if Direction == SQL_FETCH_FIRST:
+            Direction = SQL_FETCH_NEXT
+    return DriverList
+        
+
+
+
 def win_create_mdb(mdb_path, sort_order = "General\0\0"):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
+    
+    mdb_driver = [d for d in drivers() if 'Microsoft Access Driver (*.mdb' in d]
+    if mdb_driver == []:
+        raise Exception('Access Driver is not found.')
+    else:
+        driver_name = mdb_driver[0].encode('mbcs')
+
     #CREATE_DB=<path name> <sort order>
     ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
-    driver_name = "Microsoft Access Driver (*.mdb)"
+
     if py_v3:
         c_Path =  bytes("CREATE_DB=" + mdb_path + " " + sort_order,'mbcs')
-        driver_name = bytes(driver_name,'mbcs')
     else:
         c_Path =  "CREATE_DB=" + mdb_path + " " + sort_order
     ODBC_ADD_SYS_DSN = 1
@@ -2522,19 +2568,35 @@ def win_create_mdb(mdb_path, sort_order = "General\0\0"):
 def win_connect_mdb(mdb_path):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
-    return connect("Driver={Microsoft Access Driver (*.mdb)};DBQ="+mdb_path, unicode_results = True, readonly = False)
+    
+    mdb_driver = [d for d in drivers() if 'Microsoft Access Driver (*.mdb' in d]
+    if mdb_driver == []:
+        raise Exception('Access Driver is not found.')
+    else:
+        driver_name = mdb_driver[0].encode('mbcs')
+    
+    return connect(driver_name+";DBQ="+mdb_path, unicode_results = True, readonly = False)
     
     
     
 def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
+    
+    
+    mdb_driver = [d for d in drivers() if 'Microsoft Access Driver (*.mdb' in d]
+    if mdb_driver == []:
+        raise Exception('Access Driver is not found.')
+    else:
+        driver_name = mdb_driver[0].encode('mbcs')
+    
+    
     #COMPACT_DB=<source path> <destination path> <sort order>
     ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
     driver_name = "Microsoft Access Driver (*.mdb)"
     if py_v3:
         c_Path = bytes("COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order,'mbcs')
-        driver_name = bytes(driver_name,'mbcs')
+        #driver_name = bytes(driver_name,'mbcs')
     else:
         c_Path = "COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order
     ODBC_ADD_SYS_DSN = 1
