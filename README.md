@@ -4,7 +4,7 @@ pypyodbc
 A pure Python Cross Platform ODBC interface module
 
 
-**The homepage of pypyodbc is at http://code.google.com/p/pypyodbc/, while here is the coding and development space for pypyodbc.**
+**The homepage of pypyodbc is at http://code.google.com/p/pypyodbc/, while here is the coding and development space.**
 
 Features
 --------
