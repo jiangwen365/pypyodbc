@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.2'
+version = '1.1.3dev'
 lowercase=True
 
 DEBUG = 0
@@ -864,10 +864,14 @@ ODBC_API.SQLGetInfoW.argtypes = to_wchar(ODBC_API.SQLGetInfo.argtypes)
 
 # Set the alias for the ctypes functions for beter code readbility or performance.
 ADDR = ctypes.byref
+c_short = ctypes.c_short
+c_ssize_t = ctypes.c_ssize_t
 SQLFetch = ODBC_API.SQLFetch
 SQLExecute = ODBC_API.SQLExecute
 SQLBindParameter = ODBC_API.SQLBindParameter
 SQLGetData = ODBC_API.SQLGetData
+SQLRowCount = ODBC_API.SQLRowCount
+SQLNumResultCols = ODBC_API.SQLNumResultCols
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
@@ -891,7 +895,7 @@ def ctrl_err(ht, h, val_ret, ansi):
         ODBC_func = ODBC_API.SQLGetDiagRecW
         raw_s = unicode
     NativeError = ctypes.c_int()
-    Buffer_len = ctypes.c_short()
+    Buffer_len = c_short()
     err_list = []
     number_errors = 1
     
@@ -1147,17 +1151,17 @@ class Cursor:
             # SQLServer's SQLDescribeParam only supports DML SQL, so avoid the SELECT statement
             if True:# 'SELECT' not in query_string.upper():
                 #self._free_results(NO_FREE_STATEMENT)
-                NumParams = ctypes.c_short()
+                NumParams = c_short()
                 ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
             
                 for col_num in range(NumParams.value):
                     ParameterNumber = ctypes.c_ushort(col_num + 1)
-                    DataType = ctypes.c_short()
+                    DataType = c_short()
                     ParameterSize = ctypes.c_size_t()
-                    DecimalDigits = ctypes.c_short()
-                    Nullable = ctypes.c_short()
+                    DecimalDigits = c_short()
+                    Nullable = c_short()
                     ret = ODBC_API.SQLDescribeParam(
                         self.stmt_h,
                         ParameterNumber,
@@ -1190,7 +1194,7 @@ class Cursor:
         #self._free_results(NO_FREE_STATEMENT)
         
         # Get the number of query parameters judged by database.
-        NumParams = ctypes.c_short()
+        NumParams = c_short()
         ret = ODBC_API.SQLNumParams(self.stmt_h, ADDR(NumParams))
         if ret != SQL_SUCCESS:
             check_success(self, ret)
@@ -1358,8 +1362,8 @@ class Cursor:
             temp_holder.append((sql_c_type, sql_type, buf_size, dec_num, ParameterBuffer))
 
         for col_num, (sql_c_type, sql_type, buf_size, dec_num, ParameterBuffer) in enumerate(temp_holder):
-            BufferLen = ctypes.c_ssize_t(buf_size)
-            LenOrIndBuf = ctypes.c_ssize_t()
+            BufferLen = c_ssize_t(buf_size)
+            LenOrIndBuf = c_ssize_t()
                 
             
             InputOutputType = SQL_PARAM_INPUT
@@ -1627,7 +1631,7 @@ class Cursor:
 
             alloc_buffer = SQL_data_type_dict[col_sql_data_type][3](total_buf_len)
 
-            used_buf_len = ctypes.c_ssize_t()
+            used_buf_len = c_ssize_t()
             
             target_type = SQL_data_type_dict[col_sql_data_type][2]
             force_unicode = self.connection.unicode_results
@@ -1651,19 +1655,19 @@ class Cursor:
         else:
             Cname = create_buffer(1024)
         
-        Cname_ptr = ctypes.c_short()
-        Ctype_code = ctypes.c_short()
+        Cname_ptr = c_short()
+        Ctype_code = c_short()
         Csize = ctypes.c_size_t()
-        Cdisp_size = ctypes.c_ssize_t(0)
-        CDecimalDigits = ctypes.c_short()
-        Cnull_ok = ctypes.c_short()
+        Cdisp_size = c_ssize_t(0)
+        CDecimalDigits = c_short()
+        Cnull_ok = c_short()
         ColDescr = []
         self._ColTypeCodeList = []
         NOC = self._NumOfCols()
         for col in range(1, NOC+1):
             
             ret = ODBC_API.SQLColAttribute(self.stmt_h, col, SQL_DESC_DISPLAY_SIZE, ADDR(create_buffer(10)), 
-                10, ADDR(ctypes.c_short()),ADDR(Cdisp_size))
+                10, ADDR(c_short()),ADDR(Cdisp_size))
             check_success(self, ret)
             
             if force_unicode:
@@ -1695,8 +1699,8 @@ class Cursor:
     
     def _NumOfRows(self):
         """Get the number of rows"""
-        NOR = ctypes.c_ssize_t()
-        ret = ODBC_API.SQLRowCount(self.stmt_h, ADDR(NOR))
+        NOR = c_ssize_t()
+        ret = SQLRowCount(self.stmt_h, ADDR(NOR))
         check_success(self, ret)
         self.rowcount = NOR.value
         return self.rowcount    
@@ -1704,8 +1708,8 @@ class Cursor:
     
     def _NumOfCols(self):
         """Get the number of cols"""
-        NOC = ctypes.c_short()
-        ret = ODBC_API.SQLNumResultCols(self.stmt_h, ADDR(NOC))
+        NOC = c_short()
+        ret = SQLNumResultCols(self.stmt_h, ADDR(NOC))
         check_success(self, ret)
         return NOC.value
 
@@ -2236,7 +2240,7 @@ class Cursor:
 #
 
 class Connection:
-    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = False, readonly = False, **kargs):
+    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False, **kargs):
         """Init variables and connect to the engine"""
         self.connected = 0
         self.type_size_dic = {}
@@ -2427,7 +2431,7 @@ class Connection:
         if aInfoTypes[infotype] == 'GI_UINTEGER':
             total_buf_len = 1000
             alloc_buffer = ctypes.c_ulong()
-            used_buf_len = ctypes.c_short()
+            used_buf_len = c_short()
             ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
                     ADDR(used_buf_len))
             check_success(self, ret)
@@ -2436,7 +2440,7 @@ class Connection:
         elif aInfoTypes[infotype] == 'GI_USMALLINT':
             total_buf_len = 1000
             alloc_buffer = ctypes.c_ushort()
-            used_buf_len = ctypes.c_short()
+            used_buf_len = c_short()
             ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
                     ADDR(used_buf_len))
             check_success(self, ret)
@@ -2445,7 +2449,7 @@ class Connection:
         else:
             total_buf_len = 1000
             alloc_buffer = create_buffer(total_buf_len)
-            used_buf_len = ctypes.c_short()
+            used_buf_len = c_short()
             if self.ansi:
                 API_f = ODBC_API.SQLGetInfo
             else:
@@ -2522,11 +2526,11 @@ def drivers():
         lock.release()
     
     DriverDescription = create_buffer_u(1000)
-    BufferLength1 = ctypes.c_short(1000)
-    DescriptionLength = ctypes.c_short()
+    BufferLength1 = c_short(1000)
+    DescriptionLength = c_short()
     DriverAttributes = create_buffer_u(1000)
-    BufferLength2 = ctypes.c_short(1000)
-    AttributesLength = ctypes.c_short()
+    BufferLength2 = c_short(1000)
+    AttributesLength = c_short()
     ret = SQL_SUCCESS
     DriverList = []
     Direction = SQL_FETCH_FIRST
@@ -2612,8 +2616,8 @@ def dataSources():
     """Return a list with [name, descrition]"""
     dsn = create_buffer(1024)
     desc = create_buffer(1024)
-    dsn_len = ctypes.c_short()
-    desc_len = ctypes.c_short()
+    dsn_len = c_short()
+    desc_len = c_short()
     dsn_list = {}
     try:
         lock.acquire()
