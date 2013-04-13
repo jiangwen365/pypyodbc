@@ -1669,18 +1669,21 @@ class Cursor:
             
             ret = ODBC_API.SQLColAttribute(self.stmt_h, col, SQL_DESC_DISPLAY_SIZE, ADDR(create_buffer(10)), 
                 10, ADDR(c_short()),ADDR(Cdisp_size))
-            check_success(self, ret)
+            if ret != SQL_SUCCESS:
+                check_success(self, ret)
             
             if force_unicode:
             
                 ret = ODBC_API.SQLDescribeColW(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr),\
                     ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
-                check_success(self, ret)
+                if ret != SQL_SUCCESS:
+                    check_success(self, ret)
             else:
                 
                 ret = ODBC_API.SQLDescribeCol(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr),\
                     ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
-                check_success(self, ret)
+                if ret != SQL_SUCCESS:
+                    check_success(self, ret)
             
             col_name = Cname.value
             if lowercase:
@@ -1702,7 +1705,8 @@ class Cursor:
         """Get the number of rows"""
         NOR = c_ssize_t()
         ret = SQLRowCount(self.stmt_h, ADDR(NOR))
-        check_success(self, ret)
+        if ret != SQL_SUCCESS:
+            check_success(self, ret)
         self.rowcount = NOR.value
         return self.rowcount    
 
@@ -1711,7 +1715,8 @@ class Cursor:
         """Get the number of cols"""
         NOC = c_short()
         ret = SQLNumResultCols(self.stmt_h, ADDR(NOC))
-        check_success(self, ret)
+        if ret != SQL_SUCCESS:
+            check_success(self, ret)
         return NOC.value
 
 
@@ -1851,13 +1856,16 @@ class Cursor:
         self.description = None
         if free_statement == FREE_STATEMENT:
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
-            check_success(self, ret)
+            if ret != SQL_SUCCESS:
+                check_success(self, ret)
         else:
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_UNBIND)
-            check_success(self, ret)
+            if ret != SQL_SUCCESS:
+                check_success(self, ret)
             
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_RESET_PARAMS)
-            check_success(self, ret)
+            if ret != SQL_SUCCESS:
+                check_success(self, ret)
     
         self.rowcount = -1
         
@@ -2412,15 +2420,16 @@ class Connection:
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         
-        ret = SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_COMMIT);
-        check_success(self, ret)
+        ret = SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_COMMIT)
+        if ret != SQL_SUCCESS:
+            check_success(self, ret)
 
     def rollback(self):
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
-        
-        ret = ODBC_API.SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_ROLLBACK);
-        check_success(self, ret)
+        ret = SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_ROLLBACK)
+        if ret != SQL_SUCCESS:
+            check_success(self, ret)
         
     
     
