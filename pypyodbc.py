@@ -872,6 +872,7 @@ SQLBindParameter = ODBC_API.SQLBindParameter
 SQLGetData = ODBC_API.SQLGetData
 SQLRowCount = ODBC_API.SQLRowCount
 SQLNumResultCols = ODBC_API.SQLNumResultCols
+SQLEndTran = ODBC_API.SQLEndTran
 # Set alias for beter code readbility or performance.
 NO_FREE_STATEMENT = 0
 FREE_STATEMENT = 1
@@ -2411,7 +2412,7 @@ class Connection:
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         
-        ret = ODBC_API.SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_COMMIT);
+        ret = SQLEndTran(SQL_HANDLE_DBC, self.dbc_h, SQL_COMMIT);
         check_success(self, ret)
 
     def rollback(self):
