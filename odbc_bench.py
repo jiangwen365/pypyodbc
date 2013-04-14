@@ -23,7 +23,7 @@ import os, os.path, time, sys
 from pypyodbc import win_create_mdb
 
 
-for x in range(10):   
+for x in range(120):   
     print ('file: '+str(x))
     #import pypyodbc_reuse_param as pypyodbc
     #import pyodbc as pypyodbc
@@ -54,7 +54,7 @@ for x in range(10):
                             sell_time datetime);""")
     
     conn.commit()
-    for b in range(2000):
+    for b in range(2500):
         cur.executemany(u'''INSERT INTO saleout(customer_name,product_name,price,volume,sell_time) 
         VALUES(?,?,?,?,?)''',      [(u'杨天真','Apple IPhone 5','5500.1',1,'2012-1-21'),
                                     (u'郑现实','Huawei Ascend D2',None,1,'2012-1-21'),
@@ -62,10 +62,10 @@ for x in range(10):
                                     (u'顾小白','Huawei Ascend D2','5000.5',None,'2012-1-22')])
 
         
-
+        cur.commit()
         if b%100 == 0:
             print (b*4, end='\r')
-            cur.commit()
+            
     
     #cur.execute('INSERT INTO saleout (customer_name,product_name,price,volume,sell_time)  SELECT customer_name,product_name,price,volume,sell_time  FROM saleout;')
 
@@ -97,19 +97,19 @@ for x in range(10):
                             price float, 
                             volume int,
                             sell_time datetime);""")
-    cur.execute('select * from saleout')
-    r = cur.fetchone()
+    cur.execute('select customer_name,product_name,price,volume,sell_time from saleout')
+    r = cur.fetchmany(4)
     r_n = 0
     while r:
         #if r_n == 0:
         #    print (r['product_name'],r[:])
-        cur_copy.execute('''INSERT INTO saleout(customer_name,product_name,price,volume,sell_time) 
-        VALUES(?,?,?,?,?)''',      r[1:])
+        cur_copy.executemany('''INSERT INTO saleout(customer_name,product_name,price,volume,sell_time) 
+        VALUES(?,?,?,?,?)''',      r)
+        cur_copy.commit()
         if r_n % 400 == 0:
             print (r_n, end='\r')
-            cur_copy.commit()
-        r = cur.fetchone()
-        r_n +=1
+        r = cur.fetchmany(4)
+        r_n +=4
     #cur_copy.close()
     cur_copy.commit()
     conn_copy.close()
