@@ -1395,12 +1395,10 @@ class Cursor:
                 raise TypeError("Params must be in a list, tuple, or Row")
 
                 
-            if not many_mode:
-                # if called from executemany, the statement has been prepared, so no need to prepare.
-                if query_string != self.statement:
-                    # if the query is not same as last query, then it is not prepared
-                    self._free_results(FREE_STATEMENT)
-                    self.prepare(query_string)
+            if query_string != self.statement:
+                # if the query is not same as last query, then it is not prepared
+                self._free_results(FREE_STATEMENT)
+                self.prepare(query_string)
             
     
             param_types = list(map(get_type, params))
@@ -1600,9 +1598,6 @@ class Cursor:
                 
     
     def executemany(self, query_string, params_list = [None]):
-        self._free_results(FREE_STATEMENT)
-        self.prepare(query_string)
-        self._last_param_types = None
         for params in params_list:
             self.execute(query_string, params, many_mode = True)
         self._NumOfRows()
