@@ -1610,7 +1610,6 @@ class Cursor:
     def _CreateColBuf(self):
         NOC = self._NumOfCols()
         self._ColBufferList = []
-        self._row_type = None
         for col_num in range(NOC):
             col_name = self.description[col_num][0]            
             
@@ -1691,10 +1690,12 @@ class Cursor:
         
         if len(ColDescr) > 0:
             self.description = ColDescr
+            # Create the row type before fetching.
+            self._row_type = self.row_type_callable(self)
         else:
             self.description = None
         self._CreateColBuf()
-    
+            
     
     def _NumOfRows(self):
         """Get the number of rows"""
@@ -1744,10 +1745,6 @@ class Cursor:
         if ret == SQL_SUCCESS:            
             '''Bind buffers for the record set columns'''
             
-            # Lazily create the row type on first fetch.
-            if self._row_type is None:
-                self._row_type = self.row_type_callable(self)
-
             value_list = []
             col_num = 1
             for col_name, target_type, used_buf_len, ADDR_used_buf_len, alloc_buffer, ADDR_alloc_buffer, total_buf_len, buf_cvt_func in self._ColBufferList:
@@ -1757,16 +1754,24 @@ class Cursor:
                     ret = SQLGetData(self.stmt_h, col_num, target_type, ADDR_alloc_buffer, total_buf_len, ADDR_used_buf_len)
                     if ret == SQL_SUCCESS:
                         if used_buf_len.value == SQL_NULL_DATA:
-                            blocks.append(None)                    
+                            value_list.append(None)                 
                         else:
-                            if target_type == SQL_C_BINARY:
-                                blocks.append(alloc_buffer.raw[:used_buf_len.value])
-                            elif target_type == SQL_C_WCHAR:
-                                blocks.append(from_buffer_u(alloc_buffer))
+                            if blocks == []:
+                                if target_type == SQL_C_BINARY:
+                                    value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
+                                elif target_type == SQL_C_WCHAR:
+                                    value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
+                                else:
+                                    #print col_name, target_type, alloc_buffer.value
+                                    value_list.append(buf_cvt_func(alloc_buffer.value))
                             else:
-                                #print col_name, target_type, alloc_buffer.value
-                                blocks.append(alloc_buffer.value)
-                                
+                                if target_type == SQL_C_BINARY:
+                                    blocks.append(alloc_buffer.raw[:used_buf_len.value])
+                                elif target_type == SQL_C_WCHAR:
+                                    blocks.append(from_buffer_u(alloc_buffer))
+                                else:
+                                    #print col_name, target_type, alloc_buffer.value
+                                    blocks.append(alloc_buffer.value)
                         break                    
                     
                     elif ret == SQL_SUCCESS_WITH_INFO:
@@ -1780,22 +1785,15 @@ class Cursor:
                     else:
                         check_success(self, ret)   
                     
-                if len(blocks) == 0:
-                    raw_value = None
-                elif len(blocks) == 1:
-                    raw_value = blocks[0]
-                else:
+                if blocks != []:
                     if py_v3:
-                        if type(blocks[0]) == str:
+                        if target_type != SQL_C_BINARY:
                             raw_value = ''.join(blocks)
                         else:
                             raw_value = BLANK_BYTE.join(blocks)
                     else:
                         raw_value = ''.join(blocks)
 
-                if raw_value is None:
-                    value_list.append(None)
-                else:
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
             
@@ -2244,7 +2242,7 @@ class Cursor:
 #
 
 class Connection:
-    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False, **kargs):
+    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = False, readonly = False, **kargs):
         """Init variables and connect to the engine"""
         self.connected = 0
         self.type_size_dic = {}
