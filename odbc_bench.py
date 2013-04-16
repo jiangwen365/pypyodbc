@@ -116,5 +116,27 @@ for x in range(120):
     conn.close()
     R_W_time = time.time() - t_begin
     print ('\tR & W time: '+str(time.time() - t_begin))
-    print ('\tRead time=: '+str(R_W_time - write_time))
+    
+
+
+    t_begin = time.time()
+    conn = pypyodbc.connect(u'Driver={Microsoft Access Driver (*.mdb)};DBQ=D:\\pypyodbc_mdb_test\\YourMDBfilepath'+fix+'copy.mdb',unicode_results=True)
+    #conn = pypyodbc.win_connect_mdb('D:\\pypyodbc_mdb_test\\YourMDBfilepath'+fix+'.mdb')
+    cur = conn.cursor()
+    
+    cur.execute('select customer_name,product_name,price,volume,sell_time from saleout')
+    r = cur.fetchmany(4)
+    r_n = 0
+    while r:
+        #if r_n == 0:
+        #    print (r['product_name'],r[:])
+
+        if r_n % 400 == 0:
+            print (r_n, end='\r')
+        r = cur.fetchmany(4)
+        r_n +=4
+    #cur_copy.close()
+    conn.close()
+    
+    print ('\tRead  time: '+str(time.time() - t_begin))
    
