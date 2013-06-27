@@ -1729,14 +1729,13 @@ class Cursor:
     def fetchmany(self, num = None):
         if num is None:
             num = self.arraysize
-        rows, row_num = [], 0
+        rows = []
         
-        while row_num < num:
+        while len(rows) < num:
             row = self.fetchone()
             if row is None:
                 break
             rows.append(row)
-            row_num += 1
         return rows
 
 
@@ -2350,7 +2349,7 @@ class Connection:
         
     def clear_output_converters(self):
         self.output_converter = {}
-        for sqltype, profile in list(SQL_data_type_dict.items()):
+        for sqltype, profile in SQL_data_type_dict.items():
             self.output_converter[sqltype] = profile[1]
         
         
@@ -2404,7 +2403,7 @@ class Connection:
         self.support_SQLDescribeParam = False
         try:
             driver_name = self.getinfo(SQL_DRIVER_NAME)
-            if len([1 for x in ('SQLSRV','ncli','libsqlncli') if x in driver_name]) > 0:
+            if any(x in driver_name for x in ('SQLSRV','ncli','libsqlncli')):
                 self.support_SQLDescribeParam = True
         except:
             pass
