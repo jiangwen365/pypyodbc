@@ -1175,8 +1175,7 @@ class Cursor:
                         try:
                             check_success(self, ret)
                         except DatabaseError:
-                            
-                            if sys.exc_info()[1][0] == '07009':
+                            if sys.exc_info()[1].value[0] == '07009':
                                 self._PARAM_SQL_TYPE_LIST = [] 
                                 break
                             else:
