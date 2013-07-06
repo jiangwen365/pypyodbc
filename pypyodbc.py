@@ -417,7 +417,7 @@ else:
             lib_paths = ("/usr/lib/libodbc.so","/usr/lib/i386-linux-gnu/libodbc.so","/usr/lib/x86_64-linux-gnu/libodbc.so","/usr/lib/libiodbc.dylib")
             lib_paths = [path for path in lib_paths if os.path.exists(path)]
             if len(lib_paths) == 0 :
-                raise OdbcNoLibrary('ODBC Library is not found')
+                raise OdbcNoLibrary('ODBC Library is not found. Is LD_LIBRARY_PATH set?')
             else:
                 library = lib_paths[0]
 
