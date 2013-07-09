@@ -4,6 +4,9 @@
 
 # The MIT License (MIT)
 #
+# Copyright (c) 2013 Henry Zhou <jiangwen365@gmail.com> and PyPyODBC contributors
+# Copyright (c) 2004 Michele Petrazzo
+
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
 # documentation files (the "Software"), to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
@@ -2242,7 +2245,7 @@ class Cursor:
 #
 
 class Connection:
-    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = False, readonly = False, **kargs):
+    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False, **kargs):
         """Init variables and connect to the engine"""
         self.connected = 0
         self.type_size_dic = {}
@@ -2280,7 +2283,7 @@ class Connection:
         
             
      
-    def connect(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = False, readonly = False):
+    def connect(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False):
         """Connect to odbc, using connect strings and set the connection's attributes like autocommit and timeout
         by calling SQLSetConnectAttr
         """ 
