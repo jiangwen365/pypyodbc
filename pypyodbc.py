@@ -22,7 +22,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.3dev'
+version = '1.1.4dev'
 lowercase=True
 
 DEBUG = 0
@@ -41,8 +41,10 @@ if py_v3:
     unicode = str
     str_8b = bytes
     buffer = memoryview
+    BYTE_1 = bytes('1','ascii')
 else:
     str_8b = str
+    BYTE_1 = '1'
 if py_ver < '2.6':
     bytearray = str
     
@@ -575,7 +577,7 @@ SQL_VARBINARY       : (bytearray,           bytearray_cvt,              SQL_C_BI
 SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      20500  ),
 SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150    ),
 SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150    ),
-SQL_BIT             : (bool,                lambda x:x==str_8b('1'),    SQL_C_CHAR,         create_buffer,      2      ),
+SQL_BIT             : (bool,                lambda x:x == BYTE_1,       SQL_C_CHAR,         create_buffer,      2      ),
 SQL_WCHAR           : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048   ),
 SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048   ),
 SQL_GUID            : (str,                 str,                        SQL_C_CHAR,         create_buffer,      50     ),
