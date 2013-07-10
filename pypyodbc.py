@@ -25,7 +25,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.4dev'
+version = '1.1.5'
 lowercase=True
 
 DEBUG = 0
@@ -45,9 +45,11 @@ if py_v3:
     str_8b = bytes
     buffer = memoryview
     BYTE_1 = bytes('1','ascii')
+    use_unicode = True
 else:
     str_8b = str
     BYTE_1 = '1'
+    use_unicode = False
 if py_ver < '2.6':
     bytearray = str
     
@@ -1140,7 +1142,7 @@ class Cursor:
         """prepare a query"""
         
         #self._free_results(FREE_STATEMENT)
-        
+
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(ucs2_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
@@ -1391,7 +1393,7 @@ class Cursor:
         If parameters are provided, the query would first be prepared, then executed with parameters;
         If parameters are not provided, only th query sting, it would be executed directly 
         """
-
+        self._free_stmt(SQL_CLOSE)
         if params:
             # If parameters exist, first prepare the query then executed with parameters
             
@@ -1400,24 +1402,24 @@ class Cursor:
 
                 
             if query_string != self.statement:
-                # if the query is not same as last query, then it is not prepared
-                self._free_results(FREE_STATEMENT)
+                # if the query is not same as last query, then it is not prepared  
                 self.prepare(query_string)
             
     
             param_types = list(map(get_type, params))
 
             if call_mode:
+                self._free_stmt(SQL_RESET_PARAMS)
                 self._BindParams(param_types, self._pram_io_list)
             else:
                 if self._last_param_types is None:
-                    self._free_results(NO_FREE_STATEMENT)
+                    self._free_stmt(SQL_RESET_PARAMS)
                     self._BindParams(param_types)
                 elif len(param_types) != len(self._last_param_types):
-                    self._free_results(NO_FREE_STATEMENT)
+                    self._free_stmt(SQL_RESET_PARAMS)
                     self._BindParams(param_types)
                 elif sum([p_type[0] != 'N' and p_type != self._last_param_types[i] for i,p_type in enumerate(param_types)]) > 0:
-                    self._free_results(NO_FREE_STATEMENT)
+                    self._free_stmt(SQL_RESET_PARAMS)
                     self._BindParams(param_types)
                 
             
@@ -1559,7 +1561,7 @@ class Cursor:
     
     def execdirect(self, query_string):
         """Execute a query directly"""
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
         if type(query_string) == unicode:
@@ -1612,6 +1614,7 @@ class Cursor:
     
 
     def _CreateColBuf(self):
+        self._free_stmt(SQL_UNBIND)
         NOC = self._NumOfCols()
         self._ColBufferList = []
         for col_num in range(NOC):
@@ -1836,7 +1839,7 @@ class Cursor:
             check_success(self, ret)
             
         if ret == SQL_NO_DATA:
-            self._free_results(FREE_STATEMENT)
+            self._free_stmt()
             return False
         else:
             self._NumOfRows()
@@ -1845,25 +1848,24 @@ class Cursor:
         return True
     
     
-    def _free_results(self, free_statement = NO_FREE_STATEMENT):
+    def _free_stmt(self, free_type = None):
         if not self.connection.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         
-        self.description = None
-        if free_statement == FREE_STATEMENT:
+        #self.description = None
+        #self.rowcount = -1
+        if free_type in (SQL_CLOSE, None):
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
-        else:
+        elif free_type in (SQL_UNBIND, None):
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_UNBIND)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
-            
+        elif free_type in (SQL_RESET_PARAMS, None):    
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_RESET_PARAMS)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
-    
-        self.rowcount = -1
         
     
     
@@ -1909,7 +1911,7 @@ class Cursor:
             l_tableType = len(tableType)
             tableType = string_p(tableType)
         
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
         ret = API_f(self.stmt_h,
@@ -1951,7 +1953,7 @@ class Cursor:
             l_column = len(column)
             column = string_p(column)
             
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
             
@@ -1992,7 +1994,7 @@ class Cursor:
             l_table = len(table)
             table = string_p(table)
             
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
             
@@ -2037,7 +2039,7 @@ class Cursor:
             l_foreignSchema = len(foreignSchema)
             foreignSchema = string_p(foreignSchema)
         
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
         
@@ -2080,7 +2082,7 @@ class Cursor:
             column = string_p(column)
             
         
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
             
@@ -2119,7 +2121,7 @@ class Cursor:
             procedure = string_p(procedure)
             
         
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
             
@@ -2164,7 +2166,7 @@ class Cursor:
         else:
             Reserved = SQL_ENSURE
         
-        self._free_results(FREE_STATEMENT)
+        self._free_stmt()
         self._last_param_types = None
         self.statement = None
         
@@ -2244,8 +2246,9 @@ class Cursor:
 #
 #
 
+
 class Connection:
-    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False, **kargs):
+    def __init__(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = use_unicode, readonly = False, **kargs):
         """Init variables and connect to the engine"""
         self.connected = 0
         self.type_size_dic = {}
@@ -2283,7 +2286,7 @@ class Connection:
         
             
      
-    def connect(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = True, readonly = False):
+    def connect(self, connectString = '', autocommit = False, ansi = False, timeout = 0, unicode_results = use_unicode, readonly = False):
         """Connect to odbc, using connect strings and set the connection's attributes like autocommit and timeout
         by calling SQLSetConnectAttr
         """ 
@@ -2348,8 +2351,8 @@ class Connection:
         check_success(self, ret)
         
         self.unicode_results = unicode_results
-        self.update_db_special_info()
         self.connected = 1
+        self.update_db_special_info()
         
     def clear_output_converters(self):
         self.output_converter = {}
@@ -2588,7 +2591,7 @@ def win_connect_mdb(mdb_path):
     else:
         driver_name = mdb_driver[0]
 
-    return connect('Driver={'+driver_name+"};DBQ="+mdb_path, unicode_results = True, readonly = False)
+    return connect('Driver={'+driver_name+"};DBQ="+mdb_path, unicode_results = use_unicode, readonly = False)
     
     
     
