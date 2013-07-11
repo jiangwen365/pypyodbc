@@ -1858,11 +1858,11 @@ class Cursor:
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
-        elif free_type in (SQL_UNBIND, None):
+        if free_type in (SQL_UNBIND, None):
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_UNBIND)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
-        elif free_type in (SQL_RESET_PARAMS, None):    
+        if free_type in (SQL_RESET_PARAMS, None):    
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_RESET_PARAMS)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
