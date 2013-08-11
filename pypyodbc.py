@@ -81,7 +81,7 @@ SQL_ATTR_CONNECTION_POOLING = 201; SQL_CP_ONE_PER_HENV = 2
 
 SQL_FETCH_NEXT, SQL_FETCH_FIRST, SQL_FETCH_LAST = 0x01, 0x02, 0x04
 SQL_NULL_HANDLE, SQL_HANDLE_ENV, SQL_HANDLE_DBC, SQL_HANDLE_STMT = 0, 1, 2, 3
-SQL_SUCCESS, SQL_SUCCESS_WITH_INFO = 0, 1
+SQL_SUCCESS, SQL_SUCCESS_WITH_INFO, SQL_ERROR = 0, 1, -1
 SQL_NO_DATA = 100; SQL_NO_TOTAL = -4
 SQL_ATTR_ACCESS_MODE = SQL_ACCESS_MODE = 101
 SQL_ATTR_AUTOCOMMIT = SQL_AUTOCOMMIT = 102
@@ -939,6 +939,8 @@ def ctrl_err(ht, h, val_ret, ansi):
             else:
                 err_list.append((from_buffer_u(state), from_buffer_u(Message), NativeError.value))
             number_errors += 1
+        elif ret == SQL_ERROR:
+             raise ProgrammingError('', 'SQL_ERROR')
 
 
 
