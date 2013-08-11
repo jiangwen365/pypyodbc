@@ -940,7 +940,7 @@ def ctrl_err(ht, h, val_ret, ansi):
                 err_list.append((from_buffer_u(state), from_buffer_u(Message), NativeError.value))
             number_errors += 1
         elif ret == SQL_ERROR:
-             raise ProgrammingError('', 'SQL_ERROR')
+            raise ProgrammingError('', 'SQL_ERROR')
 
 
 
