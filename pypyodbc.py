@@ -891,7 +891,7 @@ def ctrl_err(ht, h, val_ret, ansi):
     
     if ansi:
         state = create_buffer(22)
-        Message = create_buffer(1024*10)
+        Message = create_buffer(1024*4)
         ODBC_func = ODBC_API.SQLGetDiagRec
         if py_v3:
             raw_s = lambda s: bytes(s,'ascii')
@@ -899,7 +899,7 @@ def ctrl_err(ht, h, val_ret, ansi):
             raw_s = str_8b
     else:
         state = create_buffer_u(22)
-        Message = create_buffer_u(1024*10)
+        Message = create_buffer_u(1024*4)
         ODBC_func = ODBC_API.SQLGetDiagRecW
         raw_s = unicode
     NativeError = ctypes.c_int()
@@ -909,7 +909,7 @@ def ctrl_err(ht, h, val_ret, ansi):
     
     while 1:
         ret = ODBC_func(ht, h, number_errors, state, \
-            NativeError, Message, len(Message), ADDR(Buffer_len))
+            ADDR(NativeError), Message, 1024, ADDR(Buffer_len))
         if ret == SQL_NO_DATA_FOUND:
             #No more data, I can raise
             #print(err_list[0][1])
