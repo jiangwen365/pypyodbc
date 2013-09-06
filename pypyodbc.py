@@ -470,7 +470,7 @@ from_buffer_u = lambda buffer: buffer.value
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
 if sys.platform not in ('win32','cli'):
-    if UNICODE_SIZE > SQLWCHAR_SIZE:
+    if UNICODE_SIZE >= SQLWCHAR_SIZE:
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
         create_buffer_u = create_buffer
