@@ -2404,9 +2404,12 @@ class Connection:
             SQL_SS_TIME2,
         ):
             cur = Cursor(self)
-            info_tuple = cur.getTypeInfo(sql_type)
-            if info_tuple is not None:
-                self.type_size_dic[sql_type] = info_tuple[2], info_tuple[14]
+            try:
+                info_tuple = cur.getTypeInfo(sql_type)
+                if info_tuple is not None:
+                    self.type_size_dic[sql_type] = info_tuple[2], info_tuple[14]
+            except:
+                pass
             cur.close()
             
         self.support_SQLDescribeParam = False
