@@ -25,7 +25,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.1.6dev'
+version = '1.2.0'
 lowercase=True
 
 DEBUG = 0
@@ -402,8 +402,20 @@ class OperationalError(DatabaseError):
         self.value = (error_code, error_desc)
         self.args = (error_code, error_desc)
 
-
+        
+        
+        
+############################################################################       
+#
+#       Find the ODBC library on the platform and connect to it using ctypes
+#
+############################################################################
 # Get the References of the platform's ODBC functions via ctypes 
+
+odbc_decoding = 'utf_16'
+odbc_encoding = 'utf_16_le'
+ucs_length = 2
+
 if sys.platform in ('win32','cli'):
     ODBC_API = ctypes.windll.odbc32
     # On Windows, the size of SQLWCHAR is hardcoded to 2-bytes.
@@ -434,6 +446,14 @@ else:
         except:
             # If still fail loading, abort.
             raise OdbcLibraryError('Error while loading ' + library)
+            
+        # only iODBC uses utf-32 / UCS4 encoding data, others normally use utf-16 / UCS2
+        # So we set those for handling.
+        if 'libiodbc.dylib' in library:
+            odbc_decoding = 'utf_32'
+            odbc_encoding = 'utf_32_le'
+            ucs_length = 4
+
 
     # unixODBC defaults to 2-bytes SQLWCHAR, unless "-DSQL_WCHART_CONVERT" was
     # added to CFLAGS, in which case it will be the size of wchar_t.
@@ -454,16 +474,16 @@ else:
 create_buffer_u = ctypes.create_unicode_buffer
 create_buffer = ctypes.create_string_buffer
 wchar_pointer = ctypes.c_wchar_p
-ucs2_buf = lambda s: s
-def ucs2_dec(buffer):
+UCS_buf = lambda s: s
+def UCS_dec(buffer):
     i = 0
     uchars = []
     while True:
-        uchar = buffer.raw[i:i + 2].decode('utf_16')
+        uchar = buffer.raw[i:i + ucs_length].decode(odbc_decoding)
         if uchar == unicode('\x00'):
             break
         uchars.append(uchar)
-        i += 2
+        i += ucs_length
     return ''.join(uchars)
 from_buffer_u = lambda buffer: buffer.value
 
@@ -476,17 +496,28 @@ if sys.platform not in ('win32','cli'):
         create_buffer_u = create_buffer
         wchar_pointer = ctypes.c_char_p
 
-        def ucs2_buf(s):
-            return s.encode('utf_16_le')
+        def UCS_buf(s):
+            return s.encode(odbc_encoding)
 
-        from_buffer_u = ucs2_dec
+        from_buffer_u = UCS_dec
 
     # Exoteric case, don't really care.
     elif UNICODE_SIZE < SQLWCHAR_SIZE:
         raise OdbcLibraryError('Using narrow Python build with ODBC library '
             'expecting wide unicode is not supported.')
 
-#################
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+############################################################
 # Database value to Python data type mappings
 
 
@@ -1146,7 +1177,7 @@ class Cursor:
         #self._free_results(FREE_STATEMENT)
 
         if type(query_string) == unicode:
-            c_query_string = wchar_pointer(ucs2_buf(query_string))
+            c_query_string = wchar_pointer(UCS_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
         else:
             c_query_string = ctypes.c_char_p(query_string)
@@ -1445,7 +1476,7 @@ class Cursor:
                     c_char_buf = param_val
                     c_buf_len = len(c_char_buf)
                 elif param_types[col_num][0] in ('u','U'):
-                    c_char_buf = ucs2_buf(param_val)
+                    c_char_buf = UCS_buf(param_val)
                     c_buf_len = len(c_char_buf)
                     
                 elif param_types[col_num][0] == 'dt':
@@ -1567,7 +1598,7 @@ class Cursor:
         self._last_param_types = None
         self.statement = None
         if type(query_string) == unicode:
-            c_query_string = wchar_pointer(ucs2_buf(query_string))
+            c_query_string = wchar_pointer(UCS_buf(query_string))
             ret = ODBC_API.SQLExecDirectW(self.stmt_h, c_query_string, len(query_string))
         else:
             c_query_string = ctypes.c_char_p(query_string)
@@ -1889,7 +1920,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_tableType = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,tableType)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLTablesW
         else:
             string_p = ctypes.c_char_p
@@ -1934,7 +1965,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_column = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,column)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -1976,7 +2007,7 @@ class Cursor:
         l_catalog = l_schema = l_table = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLPrimaryKeysW
         else:
             string_p = ctypes.c_char_p
@@ -2016,7 +2047,7 @@ class Cursor:
         l_catalog = l_schema = l_table = l_foreignTable = l_foreignCatalog = l_foreignSchema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,foreignTable,foreignCatalog,foreignSchema)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLForeignKeysW
         else:
             string_p = ctypes.c_char_p
@@ -2063,7 +2094,7 @@ class Cursor:
     def procedurecolumns(self, procedure=None, catalog=None, schema=None, column=None):
         l_catalog = l_schema = l_procedure = l_column = 0
         if unicode in [type(x) for x in (procedure, catalog, schema,column)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLProcedureColumnsW
         else:
             string_p = ctypes.c_char_p
@@ -2104,7 +2135,7 @@ class Cursor:
         l_catalog = l_schema = l_procedure = 0
         
         if unicode in [type(x) for x in (procedure, catalog, schema)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLProceduresW
         else:
             string_p = ctypes.c_char_p
@@ -2142,7 +2173,7 @@ class Cursor:
         l_table = l_catalog = l_schema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
-            string_p = lambda x:wchar_pointer(ucs2_buf(x))
+            string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLStatisticsW
         else:
             string_p = ctypes.c_char_p
@@ -2296,6 +2327,7 @@ class Connection:
         # Before we establish the connection by the connection string
         # Set the connection's attribute of "timeout" (Actully LOGIN_TIMEOUT)
         if timeout != 0:
+            self.settimeout(timeout)
             ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_LOGIN_TIMEOUT, timeout, SQL_IS_UINTEGER);
             check_success(self, ret)
 
@@ -2310,7 +2342,7 @@ class Connection:
         
         self.ansi = ansi
         if not ansi:
-            c_connectString = wchar_pointer(ucs2_buf(self.connectString))
+            c_connectString = wchar_pointer(UCS_buf(self.connectString))
             odbc_func = ODBC_API.SQLDriverConnectW
         else:
             c_connectString = ctypes.c_char_p(self.connectString)
@@ -2474,7 +2506,7 @@ class Connection:
             if self.ansi:
                 result = alloc_buffer.value
             else:
-                result = ucs2_dec(alloc_buffer)
+                result = UCS_dec(alloc_buffer)
             if aInfoTypes[infotype] == 'GI_YESNO':
                 if unicode(result[0]) == unicode('Y'):
                     result = True
