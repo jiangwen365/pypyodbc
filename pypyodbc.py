@@ -2681,3 +2681,17 @@ def dataSources():
         else:
             dsn_list[dsn.value] = desc.value
     return dsn_list
+
+
+def monkey_patch_for_gevent():
+    import functools, gevent
+    apply_e = gevent.get_hub().threadpool.apply_e
+    def monkey_patch(func):
+        @functools.wraps(func)
+        def wrap(*args, **kwargs):
+            #if DEBUG:print('%s called with %s %s' % (func, args, kwargs))
+            return apply_e(Exception, func, args, kwargs)
+        return wrap
+    for attr in dir(ODBC_API):
+        if attr.startswith('SQL') and hasattr(getattr(ODBC_API, attr), 'argtypes'):
+            setattr(ODBC_API, attr, monkey_patch(getattr(ODBC_API, attr)))
