@@ -1175,7 +1175,9 @@ class Cursor:
         """prepare a query"""
         
         #self._free_results(FREE_STATEMENT)
-
+		if not self.connection:
+			self.close()
+			
         if type(query_string) == unicode:
             c_query_string = wchar_pointer(UCS_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
@@ -1231,6 +1233,8 @@ class Cursor:
     def _BindParams(self, param_types, pram_io_list = []):
         """Create parameter buffers based on param types, and bind them to the statement"""
         # Clear the old Parameters
+		if not self.connection:
+			self.close()
         #self._free_results(NO_FREE_STATEMENT)
         
         # Get the number of query parameters judged by database.
@@ -1426,6 +1430,9 @@ class Cursor:
         If parameters are provided, the query would first be prepared, then executed with parameters;
         If parameters are not provided, only th query sting, it would be executed directly 
         """
+		if not self.connection:
+			self.close()
+			
         self._free_stmt(SQL_CLOSE)
         if params:
             # If parameters exist, first prepare the query then executed with parameters
@@ -1587,6 +1594,8 @@ class Cursor:
     
     
     def _SQLExecute(self):
+		if not self.connection:
+			self.close()
         ret = SQLExecute(self.stmt_h)
         if ret != SQL_SUCCESS:
             check_success(self, ret)  
@@ -1594,6 +1603,9 @@ class Cursor:
     
     def execdirect(self, query_string):
         """Execute a query directly"""
+		if not self.connection:
+			self.close()
+			
         self._free_stmt()
         self._last_param_types = None
         self.statement = None
@@ -1611,6 +1623,8 @@ class Cursor:
         
         
     def callproc(self, procname, args):
+		if not self.connection:
+			self.close()
         raise Warning('', 'Still not fully implemented')
         self._pram_io_list = [row[4] for row in self.procedurecolumns(procedure = procname).fetchall() if row[4] not in (SQL_RESULT_COL, SQL_RETURN_VALUE)]
         
@@ -1637,6 +1651,9 @@ class Cursor:
                 
     
     def executemany(self, query_string, params_list = [None]):
+		if not self.connection:
+			self.close()
+			
         for params in params_list:
             self.execute(query_string, params, many_mode = True)
         self._NumOfRows()
@@ -1647,6 +1664,8 @@ class Cursor:
     
 
     def _CreateColBuf(self):
+		if not self.connection:
+			self.close()
         self._free_stmt(SQL_UNBIND)
         NOC = self._NumOfCols()
         self._ColBufferList = []
@@ -1684,6 +1703,9 @@ class Cursor:
     
     def _UpdateDesc(self):
         "Get the information of (name, type_code, display_size, internal_size, col_precision, scale, null_ok)"  
+		if not self.connection:
+			self.close()
+			
         force_unicode = self.connection.unicode_results
         if force_unicode:
             Cname = create_buffer_u(1024)
@@ -1739,6 +1761,9 @@ class Cursor:
     
     def _NumOfRows(self):
         """Get the number of rows"""
+		if not self.connection:
+			self.close()
+			
         NOR = c_ssize_t()
         ret = SQLRowCount(self.stmt_h, ADDR(NOR))
         if ret != SQL_SUCCESS:
@@ -1749,6 +1774,9 @@ class Cursor:
     
     def _NumOfCols(self):
         """Get the number of cols"""
+		if not self.connection:
+			self.close()
+			
         NOC = c_short()
         ret = SQLNumResultCols(self.stmt_h, ADDR(NOC))
         if ret != SQL_SUCCESS:
@@ -1757,6 +1785,9 @@ class Cursor:
 
 
     def fetchall(self):
+		if not self.connection:
+			self.close()
+			
         rows = []
         while True:
             row = self.fetchone()
@@ -1767,6 +1798,9 @@ class Cursor:
 
 
     def fetchmany(self, num = None):
+		if not self.connection:
+			self.close()
+			
         if num is None:
             num = self.arraysize
         rows = []
@@ -1780,6 +1814,9 @@ class Cursor:
 
 
     def fetchone(self):
+		if not self.connection:
+			self.close()
+			
         ret = SQLFetch(self.stmt_h)
         if ret == SQL_SUCCESS:            
             '''Bind buffers for the record set columns'''
@@ -1847,7 +1884,7 @@ class Cursor:
     def __next__(self):
         self.next()
     
-    def next(self):
+    def next(self):			
         row = self.fetchone()
         if row is None:
             raise(StopIteration)
@@ -1858,6 +1895,9 @@ class Cursor:
 
     
     def skip(self, count = 0):
+		if not self.connection:
+			self.close()
+			
         for i in range(count):
             ret = ODBC_API.SQLFetchScroll(self.stmt_h, SQL_FETCH_NEXT, 0)
             if ret != SQL_SUCCESS:
@@ -1867,6 +1907,9 @@ class Cursor:
     
         
     def nextset(self):
+		if not self.connection:
+			self.close()
+			
         ret = ODBC_API.SQLMoreResults(self.stmt_h)
         if ret not in (SQL_SUCCESS, SQL_NO_DATA):
             check_success(self, ret)
@@ -1882,6 +1925,9 @@ class Cursor:
     
     
     def _free_stmt(self, free_type = None):
+		if not self.connection:
+			self.close()
+			
         if not self.connection.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         
@@ -1903,6 +1949,9 @@ class Cursor:
     
     
     def getTypeInfo(self, sqlType = None):
+		if not self.connection:
+			self.close()
+			
         if sqlType is None:
             type = SQL_ALL_TYPES
         else:
@@ -1917,6 +1966,9 @@ class Cursor:
     
     def tables(self, table=None, catalog=None, schema=None, tableType=None):
         """Return a list with all tables""" 
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_table = l_tableType = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,tableType)]:
@@ -1961,7 +2013,10 @@ class Cursor:
     
     
     def columns(self, table=None, catalog=None, schema=None, column=None):
-        """Return a list with all columns"""        
+        """Return a list with all columns"""   
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_table = l_column = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,column)]:
@@ -2004,6 +2059,9 @@ class Cursor:
     
     
     def primaryKeys(self, table=None, catalog=None, schema=None):
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_table = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
@@ -2044,6 +2102,9 @@ class Cursor:
     
         
     def foreignKeys(self, table=None, catalog=None, schema=None, foreignTable=None, foreignCatalog=None, foreignSchema=None):
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_table = l_foreignTable = l_foreignCatalog = l_foreignSchema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema,foreignTable,foreignCatalog,foreignSchema)]:
@@ -2092,6 +2153,9 @@ class Cursor:
     
     
     def procedurecolumns(self, procedure=None, catalog=None, schema=None, column=None):
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_procedure = l_column = 0
         if unicode in [type(x) for x in (procedure, catalog, schema,column)]:
             string_p = lambda x:wchar_pointer(UCS_buf(x))
@@ -2132,6 +2196,9 @@ class Cursor:
         
     
     def procedures(self, procedure=None, catalog=None, schema=None):
+		if not self.connection:
+			self.close()
+			
         l_catalog = l_schema = l_procedure = 0
         
         if unicode in [type(x) for x in (procedure, catalog, schema)]:
@@ -2170,6 +2237,9 @@ class Cursor:
 
 
     def statistics(self, table, catalog=None, schema=None, unique=False, quick=True):
+		if not self.connection:
+			self.close()
+			
         l_table = l_catalog = l_schema = 0
         
         if unicode in [type(x) for x in (table, catalog, schema)]:
@@ -2217,15 +2287,23 @@ class Cursor:
     
 
     def commit(self):
+		if not self.connection:
+			self.close()
         self.connection.commit()
 
     def rollback(self):
+		if not self.connection:
+			self.close()
         self.connection.rollback()
     
     def setoutputsize(self, size, column = None):
+		if not self.connection:
+			self.close()
         self._outputsize[column] = size
     
     def setinputsizes(self, sizes):
+		if not self.connection:
+			self.close()
         self._inputsizers = [size for size in sizes]
 
 
@@ -2263,6 +2341,9 @@ class Cursor:
                 pass
     
     def __exit__(self, type, value, traceback):
+		if not self.connection:
+			self.close()
+			
         if value:
             self.rollback()
         else:
@@ -2291,7 +2372,7 @@ class Connection:
         self.autocommit = autocommit
         self.readonly = False
         self.timeout = 0
-        self._cursors = []
+        # self._cursors = []
         for key, value in list(kargs.items()):
             connectString = connectString + key + '=' + value + ';'
         self.connectString = connectString
@@ -2425,7 +2506,7 @@ class Connection:
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         cur = Cursor(self, row_type_callable=row_type_callable) 
-        self._cursors.append(cur)
+        # self._cursors.append(cur)
         return cur
 
     def update_db_special_info(self):
@@ -2534,10 +2615,10 @@ class Connection:
     def close(self):
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to close a closed connection.')
-        for cur in self._cursors:
-            if not cur is None:
-                if not cur.closed:
-                    cur.close()
+        # for cur in self._cursors:
+            # if not cur is None:
+                # if not cur.closed:
+                    # cur.close()
         
         if self.connected:
             #if DEBUG:print 'disconnect'
