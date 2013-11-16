@@ -25,7 +25,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.2.2'
+version = '1.2.1'
 lowercase=True
 
 DEBUG = 0
@@ -2312,33 +2312,26 @@ class Cursor:
 #        ret = ODBC_API.SQLCloseCursor(self.stmt_h)
 #        check_success(self, ret)
 #        
-		ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
-		check_success(self, ret)
+		if self.connection.connected:
+			ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
+			check_success(self, ret)
 
-		ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_UNBIND)
-		check_success(self, ret)
+			ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_UNBIND)
+			check_success(self, ret)
 
-		ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_RESET_PARAMS)
-		check_success(self, ret)
+			ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_RESET_PARAMS)
+			check_success(self, ret)
 
-		# ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_STMT, self.stmt_h)
-		# check_success(self, ret)
+			ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_STMT, self.stmt_h)
+			check_success(self, ret)
+		
 		
 		self.closed = True
-
 	
 	
 	def __del__(self):  
 		if not self.closed:
-			#if DEBUG:print 'auto closing cursor: ',
-			try:
-				self.close()
-			except:
-				#if DEBUG:print 'failed'
-				pass
-			else:
-				#if DEBUG:print 'succeed'
-				pass
+			self.close()
 	
 	def __exit__(self, type, value, traceback):
 		if not self.connection:
@@ -2627,8 +2620,8 @@ class Connection:
 			ret = ODBC_API.SQLDisconnect(self.dbc_h)
 			check_success(self, ret)
 		#if DEBUG:print 'free dbc'
-		# ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_DBC, self.dbc_h)
-		# check_success(self, ret)
+		ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_DBC, self.dbc_h)
+		check_success(self, ret)
 #        if shared_env_h.value:
 #            #if DEBUG:print 'env'
 #            ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_ENV, shared_env_h)
