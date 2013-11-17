@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 import os, os.path, time, sys, gc
-from pypyodbc121 import win_create_mdb
+from pypyodbc import win_create_mdb
 
 if len(sys.argv) < 2:
     usage = '''
