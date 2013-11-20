@@ -1800,6 +1800,8 @@ class Cursor:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
                                     value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
+                                elif alloc_buffer.value == '':
+                                    value_list.append(None)
                                 else:
                                     #print col_name, target_type, alloc_buffer.value
                                     value_list.append(buf_cvt_func(alloc_buffer.value))
