@@ -2429,6 +2429,8 @@ class Connection:
         return cur
 
     def update_db_special_info(self):
+        if 'OdbcFb' in self.getinfo(SQL_DRIVER_NAME):
+            return
         for sql_type in (
             SQL_TYPE_TIMESTAMP,
             SQL_TYPE_DATE,
