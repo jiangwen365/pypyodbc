@@ -606,7 +606,7 @@ SQL_DATE            : (datetime.date,       dt_cvt,                     SQL_C_CH
 SQL_TIME            : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
 SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
 SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
-SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      1024  ,         False         ),
+SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
 SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500 ,         True          ),
 SQL_BINARY          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
 SQL_VARBINARY       : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
@@ -615,7 +615,7 @@ SQL_BIGINT          : (long,                long,                       SQL_C_CH
 SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
 SQL_BIT             : (bool,                lambda x:x == BYTE_1,       SQL_C_CHAR,         create_buffer,      2     ,         False         ),
 SQL_WCHAR           : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
-SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    1024  ,         False          ),
+SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
 SQL_GUID            : (str,                 str,                        SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
 SQL_WLONGVARCHAR    : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500 ,         True          ),
 SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
@@ -1672,21 +1672,26 @@ class Cursor:
         self._ColBufferList = []
         bind_data = True
         for col_num in range(NOC):
-            col_name = self.description[col_num][0]            
-            
-            col_sql_data_type = self._ColTypeCodeList[col_num]            
-    
+            col_name = self.description[col_num][0]             
+            col_size = self.description[col_num][2]     
+            col_sql_data_type = self._ColTypeCodeList[col_num]  
+
             target_type = SQL_data_type_dict[col_sql_data_type][2]
-            dynamic_length = SQL_data_type_dict[col_sql_data_type][5]
+            dynamic_length = SQL_data_type_dict[col_sql_data_type][5] 
             # set default size base on the column's sql data type
             total_buf_len = SQL_data_type_dict[col_sql_data_type][4] 
+            
             # over-write if there's pre-set size value for "large columns"
-            if total_buf_len > 1024: 
+            if total_buf_len > 20500: 
                 total_buf_len = self._outputsize.get(None,total_buf_len)
-                dynamic_length = True
             # over-write if there's pre-set size value for the "col_num" column 
             total_buf_len = self._outputsize.get(col_num, total_buf_len)
 
+            # if the size of the buffer is very long, do not bind
+            # because a large buffer decrease performance, and sometimes you only get a NULL value. 
+            # in that case use sqlgetdata instead.
+            if col_size >= 1024:
+                dynamic_length = True    
 
             alloc_buffer = SQL_data_type_dict[col_sql_data_type][3](total_buf_len)
 
@@ -1827,7 +1832,8 @@ class Cursor:
             self.close()
             
         ret = SQLFetch(self.stmt_h)
-        if ret == SQL_SUCCESS:            
+        
+        if ret in (SQL_SUCCESS,SQL_SUCCESS_WITH_INFO):            
             '''Bind buffers for the record set columns'''
             
             value_list = []
@@ -1885,11 +1891,12 @@ class Cursor:
 
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
-            
+
             return self._row_type(value_list)
         
         else:
             if ret == SQL_NO_DATA_FOUND:
+                
                 return None
             else:
                 check_success(self, ret)
