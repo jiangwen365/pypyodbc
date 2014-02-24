@@ -565,7 +565,11 @@ def dttm_cvt(x):
     if py_v3:
         x = x.decode('ascii')
     if x == '': return None
-    else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+    else:
+        SLICES = ((0, 4), (5, 7), (8, 10), (10, 13), (17, 19), (20,))
+        slices = [s for s in SLICES if max(s) <= len(x)]
+        datetime_vals = [int(x[slice(*s)]) if len(s) == 2 else int(x[s[0]:].ljust(6,'0')) for s in slices]
+        return datetime.datetime(*datetime_vals)
 
 def tm_cvt(x):
     if py_v3:
