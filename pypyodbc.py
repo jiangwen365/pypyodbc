@@ -564,8 +564,13 @@ SQL_DESC_DISPLAY_SIZE = SQL_COLUMN_DISPLAY_SIZE
 def dttm_cvt(x):
     if py_v3:
         x = x.decode('ascii')
-    if x == '': return None
-    else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+    if x == '':
+        return None
+    else:
+        try:
+            return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+        except ValueError:
+            return datetime.datetime(int("20" + x[6:8]),int(x[0:2]),int(x[3:5]))
 
 def tm_cvt(x):
     if py_v3:
