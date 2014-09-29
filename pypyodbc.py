@@ -2522,6 +2522,11 @@ class Connection:
         # self._cursors.append(cur)
         return cur
 
+    def execute(self, sql, *args, **kwargs):
+        cur = self.cursor(row_type_callable=kwargs.pop('row_type_callable', None))
+        cur.execute(sql, *args, **kwargs)
+        return cur
+
     def update_db_special_info(self):
         for sql_type in (
             SQL_TYPE_TIMESTAMP,
