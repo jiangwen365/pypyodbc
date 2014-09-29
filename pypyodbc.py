@@ -1766,11 +1766,12 @@ class Cursor:
         
         if len(ColDescr) > 0:
             self.description = ColDescr
-            # Create the row type before fetching.
-            self._row_type = self.row_type_callable(self)
         else:
             self.description = None
         self._CreateColBuf()
+
+        # Create the row type before fetching.
+        self._row_type = self.row_type_callable(self)
             
     
     def _NumOfRows(self):
