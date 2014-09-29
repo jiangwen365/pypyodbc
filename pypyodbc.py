@@ -1017,8 +1017,6 @@ A new one can be added by creating a callable that:
 
 def TupleRow(cursor):
     """Normal tuple with added attribute `cursor_description`, as in pyodbc.
-
-    This is the default.
     """
     class Row(tuple):
         cursor_description = cursor.description
@@ -1040,7 +1038,9 @@ def TupleRow(cursor):
 
 
 def NamedTupleRow(cursor):
-    """Named tuple to allow attribute lookup by name.
+    """Named tuple to allow attribute lookup by name, as in pyodbc.
+
+    This is the default.
 
     Requires py2.6 or above.
     """
@@ -1152,7 +1152,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or NamedTupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
