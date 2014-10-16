@@ -489,15 +489,18 @@ from_buffer_u = lambda buffer: buffer.value
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
-if sys.platform not in ('win32','cli'):
-    if UNICODE_SIZE >= SQLWCHAR_SIZE:
+if sys.platform not in ('win32','cli') and UNICODE_SIZE != SQLWCHAR_SIZE:
+    if UNICODE_SIZE > SQLWCHAR_SIZE:
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
         create_buffer_u = create_buffer
         wchar_pointer = ctypes.c_char_p
 
         def UCS_buf(s):
-            return s.encode(odbc_encoding)
+            # c_char_p adds a single NUL-terminating byte because it assumes its argument is being
+            # passed to a function expecting a single NUL byte. But these functions actually take an
+            # array of two-byte integers, and so expect two NUL bytes' termination.
+            return (s + u'\x00').encode(odbc_encoding)
 
         from_buffer_u = UCS_dec
 
