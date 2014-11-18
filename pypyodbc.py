@@ -493,7 +493,15 @@ if sys.platform not in ('win32','cli') and UNICODE_SIZE != SQLWCHAR_SIZE:
     if UNICODE_SIZE > SQLWCHAR_SIZE:
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
-        create_buffer_u = create_buffer
+        chars_to_bytes = lambda chars: chars * SQLWCHAR_SIZE
+        def create_buffer_u(init_or_size, *size_if_init):
+            if isinstance(init_or_size, basestring):
+                if size_if_init:
+                    return create_buffer(init_or_size, chars_to_bytes(size_if_init[0]))
+                else:
+                    return create_buffer(init_or_size)
+            else:
+                return create_buffer(chars_to_bytes(init_or_size))
         wchar_pointer = ctypes.c_char_p
 
         def UCS_buf(s):
