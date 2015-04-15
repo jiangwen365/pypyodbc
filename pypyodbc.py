@@ -930,7 +930,7 @@ def ctrl_err(ht, h, val_ret, ansi):
         else:
             raw_s = str_8b
     else:
-        state = create_buffer_u(22)
+        state = create_buffer_u(24)
         Message = create_buffer_u(1024*4)
         ODBC_func = ODBC_API.SQLGetDiagRecW
         raw_s = unicode
