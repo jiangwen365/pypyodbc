@@ -960,7 +960,7 @@ def ctrl_err(ht, h, val_ret, ansi):
                 raise IntegrityError(state,err_text)
             elif state == raw_s('0A000'):
                 raise NotSupportedError(state,err_text)
-            elif state in (raw_s('HYT00'),raw_s('HYT01')):
+            elif state in (raw_s('HYT00'),raw_s('HYT01'),raw_s('01000')):
                 raise OperationalError(state,err_text)
             elif state[:2] in (raw_s('IM'),raw_s('HY')):
                 raise Error(state,err_text)
