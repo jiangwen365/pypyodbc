@@ -475,6 +475,7 @@ create_buffer_u = ctypes.create_unicode_buffer
 create_buffer = ctypes.create_string_buffer
 wchar_pointer = ctypes.c_wchar_p
 UCS_buf = lambda s: s
+
 def UCS_dec(buffer):
     i = 0
     uchars = []
@@ -485,6 +486,24 @@ def UCS_dec(buffer):
         uchars.append(uchar)
         i += ucs_length
     return ''.join(uchars)
+
+def UTF16_BE_dec(buffer):
+    i = 0
+    uchars = []
+    while True:
+        # TODO: verify that this condition correctly identifies
+        # a surrogate pair in UTF-16 BE
+        if ord(buffer.raw[i+1]) & 0xd0 == 0xd0:
+            n = 2
+        else:
+            n = 1
+        uchar = buffer.raw[i:i + n * ucs_length].decode(odbc_decoding)
+        if uchar == unicode('\x00'):
+            break
+        uchars.append(uchar)
+        i += n * ucs_length
+    return ''.join(uchars)
+
 from_buffer_u = lambda buffer: buffer.value
 
 # This is the common case on Linux, which uses wide Python build together with
@@ -499,7 +518,11 @@ if sys.platform not in ('win32','cli'):
         def UCS_buf(s):
             return s.encode(odbc_encoding)
 
-        from_buffer_u = UCS_dec
+        if odbc_encoding == 'utf_16':
+            from_buffer_u = UTF16_BE_dec
+        else:
+            from_buffer_u = UCS_dec
+
 
     # Exoteric case, don't really care.
     elif UNICODE_SIZE < SQLWCHAR_SIZE:
