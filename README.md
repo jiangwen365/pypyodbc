@@ -24,10 +24,6 @@ Simply try pypyodbc:
     connection.cursor().execute(SQL)
     ...
 
-BBS
----
-
-http://tech.groups.yahoo.com/group/pypyodbc/messages
 
 
 Install
