@@ -25,7 +25,7 @@ Simply try pypyodbc:
     connection.cursor().execute(SQL)
     ...
 
-    SQL Server 2000/2005/2008 (and probably 2012 and 2014)
+    #SQL Server 2000/2005/2008 (and probably 2012 and 2014)
     import pypyodbc as pyodbc # you could alias it to existing pyodbc code (not every code is compatible)
     db_host = 'serverhost'
     db_name = 'database'
