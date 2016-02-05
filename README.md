@@ -25,6 +25,7 @@ Simply try pypyodbc:
     connection.cursor().execute(SQL)
     ...
 
+
     #SQL Server 2000/2005/2008 (and probably 2012 and 2014)
     import pypyodbc as pyodbc # you could alias it to existing pyodbc code (not every code is compatible)
     db_host = 'serverhost'
@@ -36,8 +37,7 @@ Simply try pypyodbc:
     SQL = 'CREATE TABLE saleout (id COUNTER PRIMARY KEY,product_name VARCHAR(25));'
     connection.cursor().execute(SQL)
 
-
-    # Simple Select
+    # Doing a simple SELECT query
     connStr = (
         r'Driver={SQL Server};'
         r'Server=sqlserver;'
@@ -64,10 +64,14 @@ Simply try pypyodbc:
     columns = [column[0] for column in cursor.description]
     for row in cursor.fetchall():
         pp.pprint(dict(zip(columns, row)))
-    
+
     # Method 3, we obtain a list of dict's (represents the entire query)
     query_results = [dict(zip([column[0] for column in cursor.description], row)) for row in cursor.fetchall()]
     pp.pprint(query_results)
+    
+    # When cursor was used must be closed, if you will not use again the db connection must be closed too.
+    cursor.close()
+    db.close()
 
 
 Install
