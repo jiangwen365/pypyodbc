@@ -50,7 +50,18 @@ Simply try pypyodbc:
         )
     db = pypyodbc.connect(connStr)
     cursor = db.cursor()
+    
+    # Sample with just a raw query:
     cursor.execute("select client_name, client_lastname, [phone number] from Clients where client_id like '01-01-00%'")
+    
+    # Using parameters (IMPORTANT: YOU SHOULD USE TUPLE TO PASS PARAMETERS)
+    # Python note: a tuple with just one element must have a trailing comma, otherwise is just a enclosed variable
+    cursor.execute("select client_name, client_lastname, [phone number] "
+    "from Clients where client_id like ?", ('01-01-00%', ))
+    
+    # Sample, passing more than one parameter
+    cursor.execute("select client_name, client_lastname, [phone number] "
+    "from Clients where client_id like ? and client_age < ?", ('01-01-00%', 28))
     
     # Method 1, simple reading using cursor
     while True:
