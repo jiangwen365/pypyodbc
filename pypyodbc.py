@@ -2754,7 +2754,7 @@ def win_connect_mdb(mdb_path):
     
     
     
-def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
+def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0", password=None):
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
     
@@ -2768,11 +2768,19 @@ def win_compact_mdb(mdb_path, compacted_mdb_path, sort_order = "General\0\0"):
     #COMPACT_DB=<source path> <destination path> <sort order>
     ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
     #driver_name = "Microsoft Access Driver (*.mdb)"
+    
+    if not compacted_mdb_path:
+        compacted_mdb_path = mdb_path
+    
+    pass_config = ""
+    if password:
+        pass_config = "PWD=" + password
+    
     if py_v3:
-        c_Path = bytes("COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order,'mbcs')
+        c_Path = bytes("COMPACT_DB=\"" + mdb_path + "\" \"" + compacted_mdb_path + "\" " + sort_order + pass_config,'mbcs')
         #driver_name = bytes(driver_name,'mbcs')
     else:
-        c_Path = "COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order
+        c_Path = "COMPACT_DB=\"" + mdb_path + "\" \"" + compacted_mdb_path + "\" " + sort_order + pass_config
 
     ODBC_ADD_SYS_DSN = 1
     ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name, c_Path)
