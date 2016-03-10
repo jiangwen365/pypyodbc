@@ -1878,6 +1878,8 @@ class Cursor:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
                                     value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
+                                elif alloc_buffer.value == '':
+                                    value_list.append(None)
                                 else:
                                     value_list.append(buf_cvt_func(alloc_buffer.value))
                             else:
@@ -2546,6 +2548,8 @@ class Connection:
         return cur
 
     def update_db_special_info(self):
+        if 'OdbcFb' in self.getinfo(SQL_DRIVER_NAME):
+            return
         for sql_type in (
             SQL_TYPE_TIMESTAMP,
             SQL_TYPE_DATE,
