@@ -1101,6 +1101,8 @@ def MutableNamedTupleRow(cursor):
                 yield getattr(self, field_name)
 
         def __getitem__(self, index):
+            if isinstance(index, (unicode, str)):
+                return getattr(self, index)
             if isinstance(index, slice):
                 return tuple(getattr(self, x) for x in self.__slots__[index])
             return getattr(self, self.__slots__[index])
@@ -1789,11 +1791,14 @@ class Cursor:
 
         if len(ColDescr) > 0:
             self.description = ColDescr
+            self._CreateColBuf()
             # Create the row type before fetching.
+
+			# rvg: self._ColBufferList must be set here hence self._createColBuf must have been cal
             self._row_type = self.row_type_callable(self)
         else:
             self.description = None
-        self._CreateColBuf()
+            self._CreateColBuf()
 
 
     def _NumOfRows(self):
@@ -2793,7 +2798,7 @@ def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0",
 
 
 def dataSources():
-    """Return a list with [name, descrition]"""
+    """Return a list with [name, description]"""
     dsn = create_buffer(1024)
     desc = create_buffer(1024)
     dsn_len = c_short()
