@@ -518,7 +518,7 @@ if sys.platform not in ('win32','cli'):
         def UCS_buf(s):
             return s.encode(odbc_encoding)
 
-        if odbc_encoding == 'utf_16':
+        if odbc_encoding.startswith('utf_16'):
             from_buffer_u = UTF16_BE_dec
         else:
             from_buffer_u = UCS_dec
