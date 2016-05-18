@@ -266,63 +266,63 @@ SQL_XOPEN_CLI_YEAR = 10000
 
 
 aInfoTypes = {
-SQL_ACCESSIBLE_PROCEDURES : 'GI_YESNO',SQL_ACCESSIBLE_TABLES : 'GI_YESNO',SQL_ACTIVE_ENVIRONMENTS : 'GI_USMALLINT',
-SQL_AGGREGATE_FUNCTIONS : 'GI_UINTEGER',SQL_ALTER_DOMAIN : 'GI_UINTEGER',
-SQL_ALTER_TABLE : 'GI_UINTEGER',SQL_ASYNC_MODE : 'GI_UINTEGER',SQL_BATCH_ROW_COUNT : 'GI_UINTEGER',
-SQL_BATCH_SUPPORT : 'GI_UINTEGER',SQL_BOOKMARK_PERSISTENCE : 'GI_UINTEGER',SQL_CATALOG_LOCATION : 'GI_USMALLINT',
-SQL_CATALOG_NAME : 'GI_YESNO',SQL_CATALOG_NAME_SEPARATOR : 'GI_STRING',SQL_CATALOG_TERM : 'GI_STRING',
-SQL_CATALOG_USAGE : 'GI_UINTEGER',SQL_COLLATION_SEQ : 'GI_STRING',SQL_COLUMN_ALIAS : 'GI_YESNO',
-SQL_CONCAT_NULL_BEHAVIOR : 'GI_USMALLINT',SQL_CONVERT_FUNCTIONS : 'GI_UINTEGER',SQL_CONVERT_VARCHAR : 'GI_UINTEGER',
-SQL_CORRELATION_NAME : 'GI_USMALLINT',SQL_CREATE_ASSERTION : 'GI_UINTEGER',SQL_CREATE_CHARACTER_SET : 'GI_UINTEGER',
-SQL_CREATE_COLLATION : 'GI_UINTEGER',SQL_CREATE_DOMAIN : 'GI_UINTEGER',SQL_CREATE_SCHEMA : 'GI_UINTEGER',
-SQL_CREATE_TABLE : 'GI_UINTEGER',SQL_CREATE_TRANSLATION : 'GI_UINTEGER',SQL_CREATE_VIEW : 'GI_UINTEGER',
-SQL_CURSOR_COMMIT_BEHAVIOR : 'GI_USMALLINT',SQL_CURSOR_ROLLBACK_BEHAVIOR : 'GI_USMALLINT',SQL_DATABASE_NAME : 'GI_STRING',
-SQL_DATA_SOURCE_NAME : 'GI_STRING',SQL_DATA_SOURCE_READ_ONLY : 'GI_YESNO',SQL_DATETIME_LITERALS : 'GI_UINTEGER',
-SQL_DBMS_NAME : 'GI_STRING',SQL_DBMS_VER : 'GI_STRING',SQL_DDL_INDEX : 'GI_UINTEGER',
-SQL_DEFAULT_TXN_ISOLATION : 'GI_UINTEGER',SQL_DESCRIBE_PARAMETER : 'GI_YESNO',SQL_DM_VER : 'GI_STRING',
-SQL_DRIVER_NAME : 'GI_STRING',SQL_DRIVER_ODBC_VER : 'GI_STRING',SQL_DRIVER_VER : 'GI_STRING',SQL_DROP_ASSERTION : 'GI_UINTEGER',
-SQL_DROP_CHARACTER_SET : 'GI_UINTEGER', SQL_DROP_COLLATION : 'GI_UINTEGER',SQL_DROP_DOMAIN : 'GI_UINTEGER',
-SQL_DROP_SCHEMA : 'GI_UINTEGER',SQL_DROP_TABLE : 'GI_UINTEGER',SQL_DROP_TRANSLATION : 'GI_UINTEGER',
-SQL_DROP_VIEW : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
-SQL_EXPRESSIONS_IN_ORDERBY : 'GI_YESNO',SQL_FILE_USAGE : 'GI_USMALLINT',
-SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
-SQL_GETDATA_EXTENSIONS : 'GI_UINTEGER',SQL_GROUP_BY : 'GI_USMALLINT',SQL_IDENTIFIER_CASE : 'GI_USMALLINT',
-SQL_IDENTIFIER_QUOTE_CHAR : 'GI_STRING',SQL_INDEX_KEYWORDS : 'GI_UINTEGER',SQL_INFO_SCHEMA_VIEWS : 'GI_UINTEGER',
-SQL_INSERT_STATEMENT : 'GI_UINTEGER',SQL_INTEGRITY : 'GI_YESNO',SQL_KEYSET_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',
-SQL_KEYSET_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',SQL_KEYWORDS : 'GI_STRING',
-SQL_LIKE_ESCAPE_CLAUSE : 'GI_YESNO',SQL_MAX_ASYNC_CONCURRENT_STATEMENTS : 'GI_UINTEGER',
-SQL_MAX_BINARY_LITERAL_LEN : 'GI_UINTEGER',SQL_MAX_CATALOG_NAME_LEN : 'GI_USMALLINT',
-SQL_MAX_CHAR_LITERAL_LEN : 'GI_UINTEGER',SQL_MAX_COLUMNS_IN_GROUP_BY : 'GI_USMALLINT',
-SQL_MAX_COLUMNS_IN_INDEX : 'GI_USMALLINT',SQL_MAX_COLUMNS_IN_ORDER_BY : 'GI_USMALLINT',
-SQL_MAX_COLUMNS_IN_SELECT : 'GI_USMALLINT',SQL_MAX_COLUMNS_IN_TABLE : 'GI_USMALLINT',
-SQL_MAX_COLUMN_NAME_LEN : 'GI_USMALLINT',SQL_MAX_CONCURRENT_ACTIVITIES : 'GI_USMALLINT',
-SQL_MAX_CURSOR_NAME_LEN : 'GI_USMALLINT',SQL_MAX_DRIVER_CONNECTIONS : 'GI_USMALLINT',
-SQL_MAX_IDENTIFIER_LEN : 'GI_USMALLINT',SQL_MAX_INDEX_SIZE : 'GI_UINTEGER',
-SQL_MAX_PROCEDURE_NAME_LEN : 'GI_USMALLINT',SQL_MAX_ROW_SIZE : 'GI_UINTEGER',
-SQL_MAX_ROW_SIZE_INCLUDES_LONG : 'GI_YESNO',SQL_MAX_SCHEMA_NAME_LEN : 'GI_USMALLINT',
-SQL_MAX_STATEMENT_LEN : 'GI_UINTEGER',SQL_MAX_TABLES_IN_SELECT : 'GI_USMALLINT',
-SQL_MAX_TABLE_NAME_LEN : 'GI_USMALLINT',SQL_MAX_USER_NAME_LEN : 'GI_USMALLINT',
-SQL_MULTIPLE_ACTIVE_TXN : 'GI_YESNO',SQL_MULT_RESULT_SETS : 'GI_YESNO',
-SQL_NEED_LONG_DATA_LEN : 'GI_YESNO',SQL_NON_NULLABLE_COLUMNS : 'GI_USMALLINT',
-SQL_NULL_COLLATION : 'GI_USMALLINT',SQL_NUMERIC_FUNCTIONS : 'GI_UINTEGER',
-SQL_ODBC_INTERFACE_CONFORMANCE : 'GI_UINTEGER',SQL_ODBC_VER : 'GI_STRING',SQL_OJ_CAPABILITIES : 'GI_UINTEGER',
-SQL_ORDER_BY_COLUMNS_IN_SELECT : 'GI_YESNO',SQL_PARAM_ARRAY_ROW_COUNTS : 'GI_UINTEGER',
-SQL_PARAM_ARRAY_SELECTS : 'GI_UINTEGER',SQL_PROCEDURES : 'GI_YESNO',SQL_PROCEDURE_TERM : 'GI_STRING',
-SQL_QUOTED_IDENTIFIER_CASE : 'GI_USMALLINT',SQL_ROW_UPDATES : 'GI_YESNO',SQL_SCHEMA_TERM : 'GI_STRING',
-SQL_SCHEMA_USAGE : 'GI_UINTEGER',SQL_SCROLL_OPTIONS : 'GI_UINTEGER',SQL_SEARCH_PATTERN_ESCAPE : 'GI_STRING',
-SQL_SERVER_NAME : 'GI_STRING',SQL_SPECIAL_CHARACTERS : 'GI_STRING',SQL_SQL92_DATETIME_FUNCTIONS : 'GI_UINTEGER',
-SQL_SQL92_FOREIGN_KEY_DELETE_RULE : 'GI_UINTEGER',SQL_SQL92_FOREIGN_KEY_UPDATE_RULE : 'GI_UINTEGER',
-SQL_SQL92_GRANT : 'GI_UINTEGER',SQL_SQL92_NUMERIC_VALUE_FUNCTIONS : 'GI_UINTEGER',
-SQL_SQL92_PREDICATES : 'GI_UINTEGER',SQL_SQL92_RELATIONAL_JOIN_OPERATORS : 'GI_UINTEGER',
-SQL_SQL92_REVOKE : 'GI_UINTEGER',SQL_SQL92_ROW_VALUE_CONSTRUCTOR : 'GI_UINTEGER',
-SQL_SQL92_STRING_FUNCTIONS : 'GI_UINTEGER',SQL_SQL92_VALUE_EXPRESSIONS : 'GI_UINTEGER',
-SQL_SQL_CONFORMANCE : 'GI_UINTEGER',SQL_STANDARD_CLI_CONFORMANCE : 'GI_UINTEGER',
-SQL_STATIC_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_STATIC_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
-SQL_STRING_FUNCTIONS : 'GI_UINTEGER',SQL_SUBQUERIES : 'GI_UINTEGER',
-SQL_SYSTEM_FUNCTIONS : 'GI_UINTEGER',SQL_TABLE_TERM : 'GI_STRING',SQL_TIMEDATE_ADD_INTERVALS : 'GI_UINTEGER',
-SQL_TIMEDATE_DIFF_INTERVALS : 'GI_UINTEGER',SQL_TIMEDATE_FUNCTIONS : 'GI_UINTEGER',
-SQL_TXN_CAPABLE : 'GI_USMALLINT',SQL_TXN_ISOLATION_OPTION : 'GI_UINTEGER',
-SQL_UNION : 'GI_UINTEGER',SQL_USER_NAME : 'GI_STRING',SQL_XOPEN_CLI_YEAR : 'GI_STRING',
+    SQL_ACCESSIBLE_PROCEDURES : 'GI_YESNO',SQL_ACCESSIBLE_TABLES : 'GI_YESNO',SQL_ACTIVE_ENVIRONMENTS : 'GI_USMALLINT',
+    SQL_AGGREGATE_FUNCTIONS : 'GI_UINTEGER',SQL_ALTER_DOMAIN : 'GI_UINTEGER',
+    SQL_ALTER_TABLE : 'GI_UINTEGER',SQL_ASYNC_MODE : 'GI_UINTEGER',SQL_BATCH_ROW_COUNT : 'GI_UINTEGER',
+    SQL_BATCH_SUPPORT : 'GI_UINTEGER',SQL_BOOKMARK_PERSISTENCE : 'GI_UINTEGER',SQL_CATALOG_LOCATION : 'GI_USMALLINT',
+    SQL_CATALOG_NAME : 'GI_YESNO',SQL_CATALOG_NAME_SEPARATOR : 'GI_STRING',SQL_CATALOG_TERM : 'GI_STRING',
+    SQL_CATALOG_USAGE : 'GI_UINTEGER',SQL_COLLATION_SEQ : 'GI_STRING',SQL_COLUMN_ALIAS : 'GI_YESNO',
+    SQL_CONCAT_NULL_BEHAVIOR : 'GI_USMALLINT',SQL_CONVERT_FUNCTIONS : 'GI_UINTEGER',SQL_CONVERT_VARCHAR : 'GI_UINTEGER',
+    SQL_CORRELATION_NAME : 'GI_USMALLINT',SQL_CREATE_ASSERTION : 'GI_UINTEGER',SQL_CREATE_CHARACTER_SET : 'GI_UINTEGER',
+    SQL_CREATE_COLLATION : 'GI_UINTEGER',SQL_CREATE_DOMAIN : 'GI_UINTEGER',SQL_CREATE_SCHEMA : 'GI_UINTEGER',
+    SQL_CREATE_TABLE : 'GI_UINTEGER',SQL_CREATE_TRANSLATION : 'GI_UINTEGER',SQL_CREATE_VIEW : 'GI_UINTEGER',
+    SQL_CURSOR_COMMIT_BEHAVIOR : 'GI_USMALLINT',SQL_CURSOR_ROLLBACK_BEHAVIOR : 'GI_USMALLINT',SQL_DATABASE_NAME : 'GI_STRING',
+    SQL_DATA_SOURCE_NAME : 'GI_STRING',SQL_DATA_SOURCE_READ_ONLY : 'GI_YESNO',SQL_DATETIME_LITERALS : 'GI_UINTEGER',
+    SQL_DBMS_NAME : 'GI_STRING',SQL_DBMS_VER : 'GI_STRING',SQL_DDL_INDEX : 'GI_UINTEGER',
+    SQL_DEFAULT_TXN_ISOLATION : 'GI_UINTEGER',SQL_DESCRIBE_PARAMETER : 'GI_YESNO',SQL_DM_VER : 'GI_STRING',
+    SQL_DRIVER_NAME : 'GI_STRING',SQL_DRIVER_ODBC_VER : 'GI_STRING',SQL_DRIVER_VER : 'GI_STRING',SQL_DROP_ASSERTION : 'GI_UINTEGER',
+    SQL_DROP_CHARACTER_SET : 'GI_UINTEGER', SQL_DROP_COLLATION : 'GI_UINTEGER',SQL_DROP_DOMAIN : 'GI_UINTEGER',
+    SQL_DROP_SCHEMA : 'GI_UINTEGER',SQL_DROP_TABLE : 'GI_UINTEGER',SQL_DROP_TRANSLATION : 'GI_UINTEGER',
+    SQL_DROP_VIEW : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_DYNAMIC_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
+    SQL_EXPRESSIONS_IN_ORDERBY : 'GI_YESNO',SQL_FILE_USAGE : 'GI_USMALLINT',
+    SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_FORWARD_ONLY_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
+    SQL_GETDATA_EXTENSIONS : 'GI_UINTEGER',SQL_GROUP_BY : 'GI_USMALLINT',SQL_IDENTIFIER_CASE : 'GI_USMALLINT',
+    SQL_IDENTIFIER_QUOTE_CHAR : 'GI_STRING',SQL_INDEX_KEYWORDS : 'GI_UINTEGER',SQL_INFO_SCHEMA_VIEWS : 'GI_UINTEGER',
+    SQL_INSERT_STATEMENT : 'GI_UINTEGER',SQL_INTEGRITY : 'GI_YESNO',SQL_KEYSET_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',
+    SQL_KEYSET_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',SQL_KEYWORDS : 'GI_STRING',
+    SQL_LIKE_ESCAPE_CLAUSE : 'GI_YESNO',SQL_MAX_ASYNC_CONCURRENT_STATEMENTS : 'GI_UINTEGER',
+    SQL_MAX_BINARY_LITERAL_LEN : 'GI_UINTEGER',SQL_MAX_CATALOG_NAME_LEN : 'GI_USMALLINT',
+    SQL_MAX_CHAR_LITERAL_LEN : 'GI_UINTEGER',SQL_MAX_COLUMNS_IN_GROUP_BY : 'GI_USMALLINT',
+    SQL_MAX_COLUMNS_IN_INDEX : 'GI_USMALLINT',SQL_MAX_COLUMNS_IN_ORDER_BY : 'GI_USMALLINT',
+    SQL_MAX_COLUMNS_IN_SELECT : 'GI_USMALLINT',SQL_MAX_COLUMNS_IN_TABLE : 'GI_USMALLINT',
+    SQL_MAX_COLUMN_NAME_LEN : 'GI_USMALLINT',SQL_MAX_CONCURRENT_ACTIVITIES : 'GI_USMALLINT',
+    SQL_MAX_CURSOR_NAME_LEN : 'GI_USMALLINT',SQL_MAX_DRIVER_CONNECTIONS : 'GI_USMALLINT',
+    SQL_MAX_IDENTIFIER_LEN : 'GI_USMALLINT',SQL_MAX_INDEX_SIZE : 'GI_UINTEGER',
+    SQL_MAX_PROCEDURE_NAME_LEN : 'GI_USMALLINT',SQL_MAX_ROW_SIZE : 'GI_UINTEGER',
+    SQL_MAX_ROW_SIZE_INCLUDES_LONG : 'GI_YESNO',SQL_MAX_SCHEMA_NAME_LEN : 'GI_USMALLINT',
+    SQL_MAX_STATEMENT_LEN : 'GI_UINTEGER',SQL_MAX_TABLES_IN_SELECT : 'GI_USMALLINT',
+    SQL_MAX_TABLE_NAME_LEN : 'GI_USMALLINT',SQL_MAX_USER_NAME_LEN : 'GI_USMALLINT',
+    SQL_MULTIPLE_ACTIVE_TXN : 'GI_YESNO',SQL_MULT_RESULT_SETS : 'GI_YESNO',
+    SQL_NEED_LONG_DATA_LEN : 'GI_YESNO',SQL_NON_NULLABLE_COLUMNS : 'GI_USMALLINT',
+    SQL_NULL_COLLATION : 'GI_USMALLINT',SQL_NUMERIC_FUNCTIONS : 'GI_UINTEGER',
+    SQL_ODBC_INTERFACE_CONFORMANCE : 'GI_UINTEGER',SQL_ODBC_VER : 'GI_STRING',SQL_OJ_CAPABILITIES : 'GI_UINTEGER',
+    SQL_ORDER_BY_COLUMNS_IN_SELECT : 'GI_YESNO',SQL_PARAM_ARRAY_ROW_COUNTS : 'GI_UINTEGER',
+    SQL_PARAM_ARRAY_SELECTS : 'GI_UINTEGER',SQL_PROCEDURES : 'GI_YESNO',SQL_PROCEDURE_TERM : 'GI_STRING',
+    SQL_QUOTED_IDENTIFIER_CASE : 'GI_USMALLINT',SQL_ROW_UPDATES : 'GI_YESNO',SQL_SCHEMA_TERM : 'GI_STRING',
+    SQL_SCHEMA_USAGE : 'GI_UINTEGER',SQL_SCROLL_OPTIONS : 'GI_UINTEGER',SQL_SEARCH_PATTERN_ESCAPE : 'GI_STRING',
+    SQL_SERVER_NAME : 'GI_STRING',SQL_SPECIAL_CHARACTERS : 'GI_STRING',SQL_SQL92_DATETIME_FUNCTIONS : 'GI_UINTEGER',
+    SQL_SQL92_FOREIGN_KEY_DELETE_RULE : 'GI_UINTEGER',SQL_SQL92_FOREIGN_KEY_UPDATE_RULE : 'GI_UINTEGER',
+    SQL_SQL92_GRANT : 'GI_UINTEGER',SQL_SQL92_NUMERIC_VALUE_FUNCTIONS : 'GI_UINTEGER',
+    SQL_SQL92_PREDICATES : 'GI_UINTEGER',SQL_SQL92_RELATIONAL_JOIN_OPERATORS : 'GI_UINTEGER',
+    SQL_SQL92_REVOKE : 'GI_UINTEGER',SQL_SQL92_ROW_VALUE_CONSTRUCTOR : 'GI_UINTEGER',
+    SQL_SQL92_STRING_FUNCTIONS : 'GI_UINTEGER',SQL_SQL92_VALUE_EXPRESSIONS : 'GI_UINTEGER',
+    SQL_SQL_CONFORMANCE : 'GI_UINTEGER',SQL_STANDARD_CLI_CONFORMANCE : 'GI_UINTEGER',
+    SQL_STATIC_CURSOR_ATTRIBUTES1 : 'GI_UINTEGER',SQL_STATIC_CURSOR_ATTRIBUTES2 : 'GI_UINTEGER',
+    SQL_STRING_FUNCTIONS : 'GI_UINTEGER',SQL_SUBQUERIES : 'GI_UINTEGER',
+    SQL_SYSTEM_FUNCTIONS : 'GI_UINTEGER',SQL_TABLE_TERM : 'GI_STRING',SQL_TIMEDATE_ADD_INTERVALS : 'GI_UINTEGER',
+    SQL_TIMEDATE_DIFF_INTERVALS : 'GI_UINTEGER',SQL_TIMEDATE_FUNCTIONS : 'GI_UINTEGER',
+    SQL_TXN_CAPABLE : 'GI_USMALLINT',SQL_TXN_ISOLATION_OPTION : 'GI_UINTEGER',
+    SQL_UNION : 'GI_UINTEGER',SQL_USER_NAME : 'GI_STRING',SQL_XOPEN_CLI_YEAR : 'GI_STRING',
 }
 
 #Definations for types
@@ -487,22 +487,21 @@ def UCS_dec(buffer):
         i += ucs_length
     return ''.join(uchars)
 
-def UTF16_BE_dec(buffer):
-    i = 0
-    uchars = []
-    while True:
-        # TODO: verify that this condition correctly identifies
-        # a surrogate pair in UTF-16 BE
-        if ord(buffer.raw[i+1]) & 0xd0 == 0xd0:
-            n = 2
-        else:
-            n = 1
-        uchar = buffer.raw[i:i + n * ucs_length].decode(odbc_decoding)
-        if uchar == unicode('\x00'):
+def UTF16_dec(buffer):
+    found_null = False
+    for i in range(1, len(buffer.raw), 2):
+        is_null_byte_pair = (buffer.raw[i - 1] == buffer.raw[i] == '\x00')
+        if is_null_byte_pair:
+            found_null = True
             break
-        uchars.append(uchar)
-        i += n * ucs_length
-    return ''.join(uchars)
+
+    if found_null:
+        # We now decode all the characters in the actual data,
+        # without the garbage
+        ret = buffer.raw[:i - 1].decode(odbc_decoding)
+    else:
+        ret = buffer.raw.decode(odbc_decoding)
+    return ret
 
 from_buffer_u = lambda buffer: buffer.value
 
@@ -519,7 +518,7 @@ if sys.platform not in ('win32','cli'):
             return s.encode(odbc_encoding)
 
         if odbc_encoding.startswith('utf_16'):
-            from_buffer_u = UTF16_BE_dec
+            from_buffer_u = UTF16_dec
         else:
             from_buffer_u = UCS_dec
 
@@ -527,7 +526,7 @@ if sys.platform not in ('win32','cli'):
     # Exoteric case, don't really care.
     elif UNICODE_SIZE < SQLWCHAR_SIZE:
         raise OdbcLibraryError('Using narrow Python build with ODBC library '
-            'expecting wide unicode is not supported.')
+                               'expecting wide unicode is not supported.')
 
 
 
@@ -615,38 +614,38 @@ if sys.platform == 'cli':
 # http://infocenter.sybase.com/help/index.jsp?topic=/com.sybase.help.sdk_12.5.1.aseodbc/html/aseodbc/CACFDIGH.htm
 
 SQL_data_type_dict = { \
-#SQL Data TYPE        0.Python Data Type     1.Default Output Converter  2.Buffer Type     3.Buffer Allocator   4.Default Size  5.Variable Length
-SQL_TYPE_NULL       : (None,                lambda x: None,             SQL_C_CHAR,         create_buffer,      2     ,         False         ),
-SQL_CHAR            : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
-SQL_NUMERIC         : (Decimal,             Decimal_cvt,                SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_DECIMAL         : (Decimal,             Decimal_cvt,                SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_INTEGER         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_SMALLINT        : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_FLOAT           : (float,               float,                      SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_REAL            : (float,               float,                      SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_DOUBLE          : (float,               float,                      SQL_C_CHAR,         create_buffer,      200   ,         False         ),
-SQL_DATE            : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
-SQL_TIME            : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
-SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
-SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
-SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
-SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500 ,         True          ),
-SQL_BINARY          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
-SQL_VARBINARY       : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
-SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      20500 ,         True          ),
-SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-SQL_BIT             : (bool,                lambda x:x == BYTE_1,       SQL_C_CHAR,         create_buffer,      2     ,         False         ),
-SQL_WCHAR           : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
-SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
-SQL_GUID            : (str,                 str,                        SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
-SQL_WLONGVARCHAR    : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500 ,         True          ),
-SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
-SQL_TYPE_TIME       : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
-SQL_TYPE_TIMESTAMP  : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
-SQL_SS_VARIANT      : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         True         ),
-SQL_SS_XML          : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500 ,         True          ),
-SQL_SS_UDT          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
+    #SQL Data TYPE        0.Python Data Type     1.Default Output Converter  2.Buffer Type     3.Buffer Allocator   4.Default Size  5.Variable Length
+    SQL_TYPE_NULL       : (None,                lambda x: None,             SQL_C_CHAR,         create_buffer,      2     ,         False         ),
+    SQL_CHAR            : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
+    SQL_NUMERIC         : (Decimal,             Decimal_cvt,                SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_DECIMAL         : (Decimal,             Decimal_cvt,                SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_INTEGER         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_SMALLINT        : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_FLOAT           : (float,               float,                      SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_REAL            : (float,               float,                      SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_DOUBLE          : (float,               float,                      SQL_C_CHAR,         create_buffer,      200   ,         False         ),
+    SQL_DATE            : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
+    SQL_TIME            : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
+    SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
+    SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
+    SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
+    SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500 ,         True          ),
+    SQL_BINARY          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
+    SQL_VARBINARY       : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
+    SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      20500 ,         True          ),
+    SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
+    SQL_BIT             : (bool,                lambda x:x == BYTE_1,       SQL_C_CHAR,         create_buffer,      2     ,         False         ),
+    SQL_WCHAR           : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
+    SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
+    SQL_GUID            : (str,                 str,                        SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
+    SQL_WLONGVARCHAR    : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500 ,         True          ),
+    SQL_TYPE_DATE       : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
+    SQL_TYPE_TIME       : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
+    SQL_TYPE_TIMESTAMP  : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
+    SQL_SS_VARIANT      : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         True         ),
+    SQL_SS_XML          : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    20500 ,         True          ),
+    SQL_SS_UDT          : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      5120  ,         True          ),
 }
 
 
@@ -964,7 +963,7 @@ def ctrl_err(ht, h, val_ret, ansi):
 
     while 1:
         ret = ODBC_func(ht, h, number_errors, state, \
-            ADDR(NativeError), Message, 1024, ADDR(Buffer_len))
+                        ADDR(NativeError), Message, 1024, ADDR(Buffer_len))
         if ret == SQL_NO_DATA_FOUND:
             #No more data, I can raise
             #print(err_list[0][1])
@@ -1232,12 +1231,12 @@ class Cursor:
                     DecimalDigits = c_short()
                     Nullable = c_short()
                     ret = ODBC_API.SQLDescribeParam(
-                        self.stmt_h,
-                        ParameterNumber,
-                        ADDR(DataType),
-                        ADDR(ParameterSize),
-                        ADDR(DecimalDigits),
-                        ADDR(Nullable),
+                            self.stmt_h,
+                            ParameterNumber,
+                            ADDR(DataType),
+                            ADDR(ParameterSize),
+                            ADDR(DecimalDigits),
+                            ADDR(Nullable),
                     )
                     if ret != SQL_SUCCESS:
                         try:
@@ -1272,7 +1271,7 @@ class Cursor:
         if len(param_types) != NumParams.value:
             # In case number of parameters provided do not same as number required
             error_desc = "The SQL contains %d parameter markers, but %d parameters were supplied" \
-                        %(NumParams.value,len(param_types))
+                         %(NumParams.value,len(param_types))
             raise ProgrammingError('HY000',error_desc)
 
 
@@ -1440,8 +1439,8 @@ class Cursor:
             if len(pram_io_list) > col_num:
                 InputOutputType = pram_io_list[col_num]
 
-            ret = SQLBindParameter(self.stmt_h, col_num + 1, InputOutputType, sql_c_type, sql_type, buf_size,\
-                    dec_num, ADDR(ParameterBuffer), BufferLen,ADDR(LenOrIndBuf))
+            ret = SQLBindParameter(self.stmt_h, col_num + 1, InputOutputType, sql_c_type, sql_type, buf_size, \
+                                   dec_num, ADDR(ParameterBuffer), BufferLen,ADDR(LenOrIndBuf))
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
             # Append the value buffer and the length buffer to the array
@@ -1550,7 +1549,7 @@ class Cursor:
                         c_char_buf = '1900-01-01 '+time_str[0:c_buf_len - 11]
                     if py_v3:
                         c_char_buf = bytes(c_char_buf,'ascii')
-                    #print c_buf_len, c_char_buf
+                        #print c_buf_len, c_char_buf
 
                 elif param_types[col_num][0] == 'b':
                     if param_val == True:
@@ -1763,20 +1762,20 @@ class Cursor:
         for col in range(1, NOC+1):
 
             ret = ODBC_API.SQLColAttribute(self.stmt_h, col, SQL_DESC_DISPLAY_SIZE, ADDR(create_buffer(10)),
-                10, ADDR(c_short()),ADDR(Cdisp_size))
+                                           10, ADDR(c_short()),ADDR(Cdisp_size))
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
 
             if force_unicode:
 
-                ret = ODBC_API.SQLDescribeColW(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr),\
-                    ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
+                ret = ODBC_API.SQLDescribeColW(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr), \
+                                               ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
             else:
 
-                ret = ODBC_API.SQLDescribeCol(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr),\
-                    ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
+                ret = ODBC_API.SQLDescribeCol(self.stmt_h, col, Cname, len(Cname), ADDR(Cname_ptr), \
+                                              ADDR(Ctype_code),ADDR(Csize),ADDR(CDecimalDigits), ADDR(Cnull_ok))
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
 
@@ -1785,8 +1784,8 @@ class Cursor:
                 col_name = col_name.lower()
             #(name, type_code, display_size,
 
-            ColDescr.append((col_name, SQL_data_type_dict.get(Ctype_code.value,(Ctype_code.value,))[0],Cdisp_size.value,\
-                Csize.value, Csize.value,CDecimalDigits.value,Cnull_ok.value == 1 and True or False))
+            ColDescr.append((col_name, SQL_data_type_dict.get(Ctype_code.value,(Ctype_code.value,))[0],Cdisp_size.value, \
+                             Csize.value, Csize.value,CDecimalDigits.value,Cnull_ok.value == 1 and True or False))
             self._ColTypeCodeList.append(Ctype_code.value)
 
         if len(ColDescr) > 0:
@@ -1794,7 +1793,7 @@ class Cursor:
             self._CreateColBuf()
             # Create the row type before fetching.
 
-			# rvg: self._ColBufferList must be set here hence self._createColBuf must have been cal
+            # rvg: self._ColBufferList must be set here hence self._createColBuf must have been cal
             self._row_type = self.row_type_callable(self)
         else:
             self.description = None
@@ -1886,9 +1885,9 @@ class Cursor:
                                 elif alloc_buffer.value == '':
                                     value_list.append(None)
                                 else:
-                                   # line below fails when chr(0) in result, hence replaced with the active line below
-								   #value_list.append(buf_cvt_func(alloc_buffer.value))
-                                   value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
+                                    # line below fails when chr(0) in result, hence replaced with the active line below
+                                    #value_list.append(buf_cvt_func(alloc_buffer.value))
+                                    value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                             else:
                                 # There are previous fetched raw data to combine
                                 if target_type == SQL_C_BINARY:
@@ -2054,10 +2053,10 @@ class Cursor:
         self._last_param_types = None
         self.statement = None
         ret = API_f(self.stmt_h,
-                                catalog, l_catalog,
-                                schema, l_schema,
-                                table, l_table,
-                                tableType, l_tableType)
+                    catalog, l_catalog,
+                    schema, l_schema,
+                    table, l_table,
+                    tableType, l_tableType)
         check_success(self, ret)
 
         self._NumOfRows()
@@ -2363,9 +2362,9 @@ class Cursor:
 
     def close(self):
         """ Call SQLCloseCursor API to free the statement handle"""
-#        ret = ODBC_API.SQLCloseCursor(self.stmt_h)
-#        check_success(self, ret)
-#
+        #        ret = ODBC_API.SQLCloseCursor(self.stmt_h)
+        #        check_success(self, ret)
+        #
         if self.connection.connected:
             ret = ODBC_API.SQLFreeStmt(self.stmt_h, SQL_CLOSE)
             check_success(self, ret)
@@ -2560,10 +2559,10 @@ class Connection:
         if 'OdbcFb' in self.getinfo(SQL_DRIVER_NAME):
             return
         for sql_type in (
-            SQL_TYPE_TIMESTAMP,
-            SQL_TYPE_DATE,
-            SQL_TYPE_TIME,
-            SQL_SS_TIME2,
+                SQL_TYPE_TIMESTAMP,
+                SQL_TYPE_DATE,
+                SQL_TYPE_TIME,
+                SQL_SS_TIME2,
         ):
             cur = Cursor(self)
 
@@ -2609,8 +2608,8 @@ class Connection:
             total_buf_len = 1000
             alloc_buffer = ctypes.c_ulong()
             used_buf_len = c_short()
-            ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
-                    ADDR(used_buf_len))
+            ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len, \
+                                      ADDR(used_buf_len))
             check_success(self, ret)
             result = alloc_buffer.value
 
@@ -2618,8 +2617,8 @@ class Connection:
             total_buf_len = 1000
             alloc_buffer = ctypes.c_ushort()
             used_buf_len = c_short()
-            ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
-                    ADDR(used_buf_len))
+            ret = ODBC_API.SQLGetInfo(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len, \
+                                      ADDR(used_buf_len))
             check_success(self, ret)
             result = alloc_buffer.value
 
@@ -2631,8 +2630,8 @@ class Connection:
                 API_f = ODBC_API.SQLGetInfo
             else:
                 API_f = ODBC_API.SQLGetInfoW
-            ret = API_f(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len,\
-                    ADDR(used_buf_len))
+            ret = API_f(self.dbc_h,infotype,ADDR(alloc_buffer), total_buf_len, \
+                        ADDR(used_buf_len))
             check_success(self, ret)
             if self.ansi:
                 result = alloc_buffer.value
@@ -2665,10 +2664,10 @@ class Connection:
     def close(self):
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to close a closed connection.')
-        # for cur in self._cursors:
+            # for cur in self._cursors:
             # if not cur is None:
-                # if not cur.closed:
-                    # cur.close()
+            # if not cur.closed:
+            # cur.close()
 
         if self.connected:
             #if DEBUG:print 'disconnect'
@@ -2679,10 +2678,10 @@ class Connection:
         #if DEBUG:print 'free dbc'
         ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_DBC, self.dbc_h)
         check_success(self, ret)
-#        if shared_env_h.value:
-#            #if DEBUG:print 'env'
-#            ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_ENV, shared_env_h)
-#            check_success(shared_env_h, ret)
+        #        if shared_env_h.value:
+        #            #if DEBUG:print 'env'
+        #            ret = ODBC_API.SQLFreeHandle(SQL_HANDLE_ENV, shared_env_h)
+        #            check_success(shared_env_h, ret)
         self.connected = 0
 
 odbc = Connection
@@ -2713,7 +2712,7 @@ def drivers():
     Direction = SQL_FETCH_FIRST
     while ret != SQL_NO_DATA:
         ret = ODBC_API.SQLDriversW(shared_env_h, Direction , DriverDescription , BufferLength1
-                    , ADDR(DescriptionLength), DriverAttributes, BufferLength2, ADDR(AttributesLength))
+                                   , ADDR(DescriptionLength), DriverAttributes, BufferLength2, ADDR(AttributesLength))
         check_success(shared_env_h, ret)
         DriverList.append(DriverDescription.value)
         if Direction == SQL_FETCH_FIRST:
@@ -2812,7 +2811,7 @@ def dataSources():
         lock.release()
     while 1:
         ret = ODBC_API.SQLDataSources(shared_env_h, SQL_FETCH_NEXT, \
-            dsn, len(dsn), ADDR(dsn_len), desc, len(desc), ADDR(desc_len))
+                                      dsn, len(dsn), ADDR(dsn_len), desc, len(desc), ADDR(desc_len))
         if ret == SQL_NO_DATA_FOUND:
             break
         elif not ret in (SQL_SUCCESS, SQL_SUCCESS_WITH_INFO):
