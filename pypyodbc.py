@@ -26,7 +26,7 @@ apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
 version = '1.3.0'
-lowercase=True
+lowercase = False
 
 DEBUG = 0
 # Comment out all "if DEBUG:" statements like below for production
@@ -508,15 +508,26 @@ from_buffer_u = lambda buffer: buffer.value
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
-if sys.platform not in ('win32','cli'):
-    if UNICODE_SIZE >= SQLWCHAR_SIZE:
+if sys.platform not in ('win32','cli') and UNICODE_SIZE != SQLWCHAR_SIZE:
+    if UNICODE_SIZE > SQLWCHAR_SIZE:
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
-        create_buffer_u = create_buffer
+        chars_to_bytes = lambda chars: chars * SQLWCHAR_SIZE
+        def create_buffer_u(init_or_size, *size_if_init):
+            if isinstance(init_or_size, basestring):
+                if size_if_init:
+                    return create_buffer(init_or_size, chars_to_bytes(size_if_init[0]))
+                else:
+                    return create_buffer(init_or_size)
+            else:
+                return create_buffer(chars_to_bytes(init_or_size))
         wchar_pointer = ctypes.c_char_p
 
         def UCS_buf(s):
-            return s.encode(odbc_encoding)
+            # c_char_p adds a single NUL-terminating byte because it assumes its argument is being
+            # passed to a function expecting a single NUL byte. But these functions actually take an
+            # array of two-byte integers, and so expect two NUL bytes' termination.
+            return (s + u'\x00').encode(odbc_encoding)
 
         if odbc_encoding == 'utf_16':
             from_buffer_u = UTF16_BE_dec
@@ -1040,8 +1051,6 @@ A new one can be added by creating a callable that:
 
 def TupleRow(cursor):
     """Normal tuple with added attribute `cursor_description`, as in pyodbc.
-
-    This is the default.
     """
     class Row(tuple):
         cursor_description = cursor.description
@@ -1063,7 +1072,9 @@ def TupleRow(cursor):
 
 
 def NamedTupleRow(cursor):
-    """Named tuple to allow attribute lookup by name.
+    """Named tuple to allow attribute lookup by name, as in pyodbc.
+
+    This is the default.
 
     Requires py2.6 or above.
     """
@@ -1175,7 +1186,7 @@ class Cursor:
         self.stmt_h = ctypes.c_void_p()
         self.connection = conx
         self.ansi = conx.ansi
-        self.row_type_callable = row_type_callable or TupleRow
+        self.row_type_callable = row_type_callable or NamedTupleRow
         self.statement = None
         self._last_param_types = None
         self._ParamBufferList = []
@@ -1789,11 +1800,12 @@ class Cursor:
         
         if len(ColDescr) > 0:
             self.description = ColDescr
-            # Create the row type before fetching.
-            self._row_type = self.row_type_callable(self)
         else:
             self.description = None
         self._CreateColBuf()
+
+        # Create the row type before fetching.
+        self._row_type = self.row_type_callable(self)
             
     
     def _NumOfRows(self):
@@ -2545,6 +2557,11 @@ class Connection:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
         cur = Cursor(self, row_type_callable=row_type_callable) 
         # self._cursors.append(cur)
+        return cur
+
+    def execute(self, sql, *args, **kwargs):
+        cur = self.cursor(row_type_callable=kwargs.pop('row_type_callable', None))
+        cur.execute(sql, *args, **kwargs)
         return cur
 
     def update_db_special_info(self):
