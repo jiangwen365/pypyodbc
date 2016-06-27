@@ -1904,6 +1904,8 @@ class Cursor:
                         # Means the data is only partial
                         if target_type == SQL_C_BINARY:
                             raw_data_parts.append(alloc_buffer.raw)
+                        elif target_type == SQL_C_WCHAR:
+                            raw_data_parts.append(from_buffer_u(alloc_buffer))
                         else:
                             raw_data_parts.append(alloc_buffer.value)
 
