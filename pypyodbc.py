@@ -494,13 +494,21 @@ def UTF16_dec(buffer):
         if is_null_byte_pair:
             found_null = True
             break
-
     if found_null:
         # We now decode all the characters in the actual data,
         # without the garbage
-        ret = buffer.raw[:i - 1].decode(odbc_decoding)
+        to_decode = buffer.raw[:i - 1]
     else:
-        ret = buffer.raw.decode(odbc_decoding)
+        to_decode = buffer.raw
+
+    try:
+        ret = to_decode.decode(odbc_decoding)
+    except UnicodeDecodeError:
+        # We print as there is no logging here
+        print 'pypyodbc failed to decode "%s". Emitting in '
+              'raw form' % to_decode
+        ret = to_decode
+
     return ret
 
 from_buffer_u = lambda buffer: buffer.value
