@@ -10,7 +10,7 @@ except:
 
 setup(
     name='pypyodbc',
-    version='1.0.5',
+    version='1.3.1',
     description='A Pure Python ctypes ODBC module',
     author='jiangwen365',
     author_email='jiangwen365@gmail.com',
