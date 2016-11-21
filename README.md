@@ -97,6 +97,6 @@ Or get the latest pypyodbc.py script from GitHub (Main Development site) <https:
 
 Double click the setup.py file, or run
 
-    setup.py install
+    python setup.py install
 
 Also check out the Google wiki at http://code.google.com/p/pypyodbc/
