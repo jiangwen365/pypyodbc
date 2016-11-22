@@ -507,6 +507,13 @@ def UTF16_BE_dec(buffer):
 
 from_buffer_u = lambda buffer: buffer.value
 unixodbc_cvt = lambda s: str(s.value, encoding='utf-8')
+def unixodbc_crt(buf):
+    idx = buf.raw.find(b'\x00\00')
+    real = bytes([x for x in buf.raw[0:idx] if x != 0x00])
+    if py_v3:
+        return str(real, encoding='utf-8')
+    else:
+        pass
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
@@ -1787,6 +1794,12 @@ class Cursor:
             if unixodbc:
                 if not force_unicode:
                     col_name = unixodbc_cvt(Cname)
+                # unicode on linux/unixiODBC return things like this
+                # b'\xe5\x00\x9b\x00\xbe\x00\xe5\x00\xb9\x00\x85\x00\xe5\x00\x8f\x00\xb7\x00\x00\x00'
+                # it's really utf-8, but every byte padded with zero and terminated by '\x00\x00'
+                # it's a unixODBC's mistake.
+                elif sys.platform in ('linux'):
+                    col_name = unixodbc_crt(Cname)
             if lowercase:
                 col_name = col_name.lower()
             #(name, type_code, display_size, 
