@@ -612,7 +612,10 @@ def dt_cvt(x):
 def Decimal_cvt(x):
     if py_v3:
         x = x.decode('ascii')
-    return Decimal(x)
+    try:
+        return Decimal(x)
+    except Exception:
+        return Decimal(x.rstrip('\x00'))
 
 bytearray_cvt = bytearray
 if sys.platform == 'cli':
