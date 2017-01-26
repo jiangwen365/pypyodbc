@@ -511,7 +511,7 @@ unixodbc_crt = lambda s,l: str(bytes([x for x in s.raw[0:l*2] if x!=0x00]), enco
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
-if sys.platform not in ('win32','cli'):
+if sys.platform not in ('win32','cli','cygwin'):
     if UNICODE_SIZE >= SQLWCHAR_SIZE:
         # We can only use unicode buffer if the size of wchar_t (UNICODE_SIZE) is
         # the same as the size expected by the driver manager (SQLWCHAR_SIZE).
