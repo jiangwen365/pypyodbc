@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # PyPyODBC is develped from RealPyODBC 0.1 beta released in 2004 by Michele Petrazzo. Thanks Michele.
+# Website - https://github.com/jiangwen365/pypyodbc
 
 # The MIT License (MIT)
 #
