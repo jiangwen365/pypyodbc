@@ -28,7 +28,6 @@ paramstyle = 'qmark'
 threadsafety = 1
 version = '1.3.0'
 lowercase=True
-unixodbc = False
 
 DEBUG = 0
 # Comment out all "if DEBUG:" statements like below for production
@@ -507,7 +506,6 @@ def UTF16_BE_dec(buffer):
     return ''.join(uchars)
 
 from_buffer_u = lambda buffer: buffer.value
-unixodbc_cvt = lambda s: str(s.value, encoding='utf-8')
 
 # This is the common case on Linux, which uses wide Python build together with
 # the default unixODBC without the "-DSQL_WCHART_CONVERT" CFLAGS.
@@ -532,9 +530,6 @@ if sys.platform not in ('win32','cli','cygwin'):
         raise OdbcLibraryError('Using narrow Python build with ODBC library '
             'expecting wide unicode is not supported.')
 
-    # unixODBC on Linux or Mac
-    if 'libodbc' in library:
-        unixodbc = True
             
             
             
@@ -965,7 +960,7 @@ def ctrl_err(ht, h, val_ret, ansi):
         raw_s = unicode
     NativeError = ctypes.c_int()
     Buffer_len = c_short()
-    err_list = [(raw_s('00000'),raw_s(''),raw_s(''))]
+    err_list = []
     number_errors = 1
     
     while 1:
@@ -1785,9 +1780,6 @@ class Cursor:
                     check_success(self, ret)
             
             col_name = from_buffer_u(Cname)
-            if unixodbc:
-                if not force_unicode:
-                    col_name = unixodbc_cvt(Cname)
             if lowercase:
                 col_name = col_name.lower()
             #(name, type_code, display_size, 
@@ -1886,15 +1878,7 @@ class Cursor:
                                 if target_type == SQL_C_BINARY:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
-                                    if unixodbc:
-                                        value_list.append(buf_cvt_func(unixodbc_cvt(alloc_buffer)))
-                                    else:
-                                        value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
-                                elif target_type == SQL_C_CHAR:
-                                    if unixodbc:
-                                        value_list.append(buf_cvt_func(unixodbc_cvt(alloc_buffer)))
-                                    else:
-                                        value_list.append(buf_cvt_func(alloc_buffer.value))
+                                    value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
                                 elif alloc_buffer.value == '':
                                     value_list.append(None)
                                 else:
@@ -1904,15 +1888,7 @@ class Cursor:
                                 if target_type == SQL_C_BINARY:
                                     raw_data_parts.append(alloc_buffer.raw[:used_buf_len.value])
                                 elif target_type == SQL_C_WCHAR:
-                                    if unixodbc:
-                                        value_list.append(buf_cvt_func(unixodbc_cvt(alloc_buffer)))
-                                    else:
-                                        value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
-                                elif target_type == SQL_C_CHAR:
-                                    if unixodbc:
-                                        value_list.append(buf_cvt_func(unixodbc_cvt(alloc_buffer)))
-                                    else:
-                                        value_list.append(buf_cvt_func(alloc_buffer.value))
+                                    raw_data_parts.append(from_buffer_u(alloc_buffer))
                                 else:
                                     raw_data_parts.append(alloc_buffer.value)
                         break                    
@@ -2573,11 +2549,8 @@ class Connection:
         return cur
 
     def update_db_special_info(self):
-        try:
-            if 'OdbcFb' in self.getinfo(SQL_DRIVER_NAME):
-                return
-        except:
-            pass
+        if 'OdbcFb' in self.getinfo(SQL_DRIVER_NAME):
+            return
         for sql_type in (
             SQL_TYPE_TIMESTAMP,
             SQL_TYPE_DATE,
@@ -2656,7 +2629,7 @@ class Connection:
             if self.ansi:
                 result = alloc_buffer.value
             else:
-                result = from_buffer_u(alloc_buffer)
+                result = UCS_dec(alloc_buffer)
             if aInfoTypes[infotype] == 'GI_YESNO':
                 if unicode(result[0]) == unicode('Y'):
                     result = True
