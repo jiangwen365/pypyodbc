@@ -4,7 +4,8 @@ pypyodbc
 A pure Python Cross Platform ODBC interface module
 
 
-**This is the homepage of pypyodbc  http://code.google.com/p/pypyodbc/ .**
+**This is the homepage of pypyodbc  http://code.google.com/p/pypyodbc/ .**  Also check out the  wiki at https://github.com/jiangwen365/pypyodbc/wiki
+
 
 Features
 --------
@@ -99,4 +100,3 @@ Double click the setup.py file, or run
 
     python setup.py install
 
-Also check out the  wiki at https://github.com/jiangwen365/pypyodbc/wiki
