@@ -2805,10 +2805,10 @@ def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0",
         pass_config = "PWD=" + password
     
     if py_v3:
-        c_Path = bytes("COMPACT_DB=\"" + mdb_path + "\" \"" + compacted_mdb_path + "\" " + sort_order + pass_config,'mbcs')
+        c_Path = bytes("COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order + pass_config,'mbcs')
         #driver_name = bytes(driver_name,'mbcs')
     else:
-        c_Path = "COMPACT_DB=\"" + mdb_path + "\" \"" + compacted_mdb_path + "\" " + sort_order + pass_config
+        c_Path = "COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order + pass_config
 
     ODBC_ADD_SYS_DSN = 1
     ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name, c_Path)
