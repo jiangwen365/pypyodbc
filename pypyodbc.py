@@ -2751,11 +2751,10 @@ def get_mdb_driver():
     return driver_name
 
     
-def win_connect_mdb(mdb_path,create=False):
-    if create == True:
-        win_create_mdb(mdb_path)
+def win_connect_mdb(mdb_path,readonly=False):
     driver_name = get_mdb_driver()
-    return connect('Driver={'+driver_name+"};DBQ="+mdb_path, unicode_results = use_unicode, readonly = False)
+    mdb_path = mdb_path.strip('"')
+    return connect('Driver={'+driver_name+"};DBQ="+mdb_path, unicode_results = use_unicode, readonly = readonly)
     
     
 def win_create_mdb(mdb_path, sort_order = "General\0\0"):
@@ -2773,12 +2772,12 @@ def win_create_mdb(mdb_path, sort_order = "General\0\0"):
     ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name.encode('mbcs'), c_Path)
     if not ret:
         raise Exception('Failed to create Access mdb file - "%s". Please check file path, permission and Access driver readiness.' %mdb_path)
+    return win_connect_mdb(mdb_path)
     
-    
-def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0", password=None):
+def win_compact_mdb(mdb_path, compacted_mdb_path="", sort_order = "General\0", password=None):
+    driver_name = get_mdb_driver()
     mdb_path='"'+mdb_path.strip('"')+'"'
     compacted_mdb_path='"'+compacted_mdb_path.strip('"')+'"'
-    driver_name = get_mdb_driver()
     
     #COMPACT_DB=<source path> <destination path> <sort order>
     #driver_name = "Microsoft Access Driver (*.mdb)"
