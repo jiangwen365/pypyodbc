@@ -26,7 +26,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.3.4'
+version = '1.3.5'
 lowercase=True
 
 DEBUG = 0
@@ -2739,36 +2739,7 @@ def drivers():
             Direction = SQL_FETCH_NEXT
     return DriverList
         
-
-
-
-def win_create_mdb(mdb_path, sort_order = "General\0\0"):
-    if sys.platform not in ('win32','cli'):
-        raise Exception('This function is available for use in Windows only.')
-    
-    mdb_driver = [d for d in drivers() if 'Microsoft Access Driver (*.mdb' in d]
-    if mdb_driver == []:
-        raise Exception('Access Driver is not found.')
-    else:
-        driver_name = mdb_driver[0].encode('mbcs')
-
-
-    #CREATE_DB=<path name> <sort order>
-    ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
-
-    if py_v3:
-        c_Path =  bytes("CREATE_DB=" + mdb_path + " " + sort_order,'mbcs')
-    else:
-        c_Path =  "CREATE_DB=" + mdb_path + " " + sort_order
-    ODBC_ADD_SYS_DSN = 1
-    
-    
-    ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name, c_Path)
-    if not ret:
-        raise Exception('Failed to create Access mdb file - "%s". Please check file path, permission and Access driver readiness.' %mdb_path)
-    
-    
-def win_connect_mdb(mdb_path):
+def get_mdb_driver():
     if sys.platform not in ('win32','cli'):
         raise Exception('This function is available for use in Windows only.')
     
@@ -2777,24 +2748,39 @@ def win_connect_mdb(mdb_path):
         raise Exception('Access Driver is not found.')
     else:
         driver_name = mdb_driver[0]
+    return driver_name
 
+    
+def win_connect_mdb(mdb_path,create=False):
+    if create == True:
+        win_create_mdb(mdb_path)
+    driver_name = get_mdb_driver()
     return connect('Driver={'+driver_name+"};DBQ="+mdb_path, unicode_results = use_unicode, readonly = False)
     
     
+def win_create_mdb(mdb_path, sort_order = "General\0\0"):
+    driver_name = get_mdb_driver()
+    mdb_path='"'+mdb_path.strip('"')+'"'
+    #CREATE_DB=<path name> <sort order>
+    if py_v3:
+        c_Path =  bytes("CREATE_DB=" + mdb_path + " " + sort_order,'mbcs')
+    else:
+        c_Path =  "CREATE_DB=" + mdb_path + " " + sort_order
+    ODBC_ADD_SYS_DSN = 1
+    
+    
+    ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
+    ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name.encode('mbcs'), c_Path)
+    if not ret:
+        raise Exception('Failed to create Access mdb file - "%s". Please check file path, permission and Access driver readiness.' %mdb_path)
+    
     
 def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0", password=None):
-    if sys.platform not in ('win32','cli'):
-        raise Exception('This function is available for use in Windows only.')
-    
-    
-    mdb_driver = [d for d in drivers() if 'Microsoft Access Driver (*.mdb' in d]
-    if mdb_driver == []:
-        raise Exception('Access Driver is not found.')
-    else:
-        driver_name = mdb_driver[0].encode('mbcs')
+    mdb_path='"'+mdb_path.strip('"')+'"'
+    compacted_mdb_path='"'+compacted_mdb_path.strip('"')+'"'
+    driver_name = get_mdb_driver()
     
     #COMPACT_DB=<source path> <destination path> <sort order>
-    ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
     #driver_name = "Microsoft Access Driver (*.mdb)"
     
     if not compacted_mdb_path:
@@ -2811,7 +2797,8 @@ def win_compact_mdb(mdb_path, compacted_mdb_path=None, sort_order = "General\0",
         c_Path = "COMPACT_DB=" + mdb_path + " " + compacted_mdb_path + " " + sort_order + pass_config
 
     ODBC_ADD_SYS_DSN = 1
-    ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name, c_Path)
+    ctypes.windll.ODBCCP32.SQLConfigDataSource.argtypes = [ctypes.c_void_p,ctypes.c_ushort,ctypes.c_char_p,ctypes.c_char_p]
+    ret = ctypes.windll.ODBCCP32.SQLConfigDataSource(None,ODBC_ADD_SYS_DSN,driver_name.encode('mbcs'), c_Path)
     if not ret:
         raise Exception('Failed to compact Access mdb file - "%s". Please check file path, permission and Access driver readiness.' %compacted_mdb_path)
         
