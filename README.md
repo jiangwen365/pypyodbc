@@ -23,8 +23,7 @@ Simply try pypyodbc:
 # Microsoft Access DB
 import pypyodbc 
 
-pypyodbc.win_create_mdb('D:\\database.mdb')
-connection = pypyodbc.win_connect_mdb('D:\\database.mdb')
+connection = pypyodbc.win_create_mdb('D:\\database.mdb')
 
 SQL = 'CREATE TABLE saleout (id COUNTER PRIMARY KEY,product_name VARCHAR(25));'
 connection.cursor().execute(SQL)
