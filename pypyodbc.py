@@ -1933,7 +1933,7 @@ class Cursor:
                         else:
                             raw_value = BLANK_BYTE.join(raw_data_parts)
                     else:
-                        raw_value = ''.join(raw_data_parts)
+                        raw_value = self.merge_raw_data_parts(raw_data_parts)
 
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
@@ -1946,6 +1946,20 @@ class Cursor:
                 return None
             else:
                 check_success(self, ret)
+
+    def merge_raw_data_parts(self, raw_data_parts):
+        try:
+            return ''.join(raw_data_parts)
+
+        except UnicodeDecodeError:
+            import chardet
+            for i, raw_data_part in enumerate(raw_data_parts):
+                raw_data_parts[i] = \
+                    raw_data_part.decode(chardet.detect(
+                        raw_data_part).get('encoding'))
+
+        return ''.join(raw_data_parts)
+
 
     def __next__(self):
         return self.next()
