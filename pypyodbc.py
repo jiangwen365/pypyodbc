@@ -1929,11 +1929,11 @@ class Cursor:
                 if raw_data_parts != []:
                     if py_v3:
                         if target_type != SQL_C_BINARY:
-                            raw_value = ''.join(raw_data_parts)
+                            raw_value = self.merge_raw_data_parts('', raw_data_parts)
                         else:
-                            raw_value = BLANK_BYTE.join(raw_data_parts)
+                            raw_value = self.merge_raw_data_parts(BLANK_BYTE, raw_data_parts)
                     else:
-                        raw_value = self.merge_raw_data_parts(raw_data_parts)
+                        raw_value = self.merge_raw_data_parts('', raw_data_parts)
 
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
@@ -1947,9 +1947,9 @@ class Cursor:
             else:
                 check_success(self, ret)
 
-    def merge_raw_data_parts(self, raw_data_parts):
+    def merge_raw_data_parts(self, char, raw_data_parts):
         try:
-            return ''.join(raw_data_parts)
+            return char.join(raw_data_parts)
 
         except UnicodeDecodeError:
             import chardet
@@ -1958,7 +1958,7 @@ class Cursor:
                     raw_data_part.decode(chardet.detect(
                         raw_data_part).get('encoding'))
 
-        return ''.join(raw_data_parts)
+        return char.join(raw_data_parts)
 
 
     def __next__(self):
