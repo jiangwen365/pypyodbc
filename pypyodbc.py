@@ -1344,8 +1344,11 @@ class Cursor:
                 digit_num, dec_num = param_types[col_num][1]
                 if dec_num > 0:
                     # has decimal
-                    buf_size = digit_num 
-                    dec_num = dec_num
+                    if dec_num > digit_num:
+                        buf_size = dec_num
+                    else:
+                        buf_size = digit_num
+                        dec_num = dec_num
                 else:
                     # no decimal
                     buf_size = digit_num - dec_num 
@@ -1577,11 +1580,10 @@ class Cursor:
                         # has decimal
                         left_part = digit_string[:digit_num - dec_num]
                         right_part = digit_string[0-dec_num:]
+                        v = ''.join((sign, left_part,'.', right_part))
                     else:
                         # no decimal
-                        left_part = digit_string + '0'*(0-dec_num)
-                        right_part = ''
-                    v = ''.join((sign, left_part,'.', right_part))
+                        v = digit_string + '0'*(0-dec_num)
 
                     if py_v3:
                         c_char_buf = bytes(v,'ascii')
