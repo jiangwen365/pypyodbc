@@ -5,7 +5,7 @@
 
 # The MIT License (MIT)
 #
-# Copyright (c) 2014 Henry Zhou <jiangwen365@gmail.com> and PyPyODBC contributors
+# Copyright (c) 2017 Henry Zhou <jiangwen365@gmail.com> and PyPyODBC contributors
 # Copyright (c) 2004 Michele Petrazzo
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
@@ -26,7 +26,7 @@ pooling = True
 apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
-version = '1.3.5'
+version = '1.3.6'
 lowercase=True
 
 DEBUG = 0
@@ -1344,11 +1344,15 @@ class Cursor:
                 digit_num, dec_num = param_types[col_num][1]
                 if dec_num > 0:
                     # has decimal
+                    # 1.23 as_tuple -> (1,2,3),-2 
+                    # 1.23 digit_num = 3 dec_num = 2
+                    # 0.11 digit_num = 2 dec_num = 2
+                    # 0.01 digit_num = 1 dec_num = 2
                     if dec_num > digit_num:
                         buf_size = dec_num
                     else:
                         buf_size = digit_num
-                        dec_num = dec_num
+                        #dec_num = dec_num
                 else:
                     # no decimal
                     buf_size = digit_num - dec_num 
@@ -1578,12 +1582,15 @@ class Cursor:
                     digit_num, dec_num = param_types[col_num][1]
                     if dec_num > 0:
                         # has decimal
+                        # 1.12 digit_num = 3 dec_num = 2
+                        # 0.11 digit_num = 2 dec_num = 2 
+                        # 0.01 digit_num = 1 dec_num = 2
                         left_part = digit_string[:digit_num - dec_num]
-                        right_part = digit_string[0-dec_num:]
+                        right_part = digit_string[0-dec_num:].zfill(dec_num)
                         v = ''.join((sign, left_part,'.', right_part))
                     else:
                         # no decimal
-                        v = digit_string + '0'*(0-dec_num)
+                        v = ''.join(digit_string , '0'*(0-dec_num))
 
                     if py_v3:
                         c_char_buf = bytes(v,'ascii')
