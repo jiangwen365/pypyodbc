@@ -1954,6 +1954,8 @@ class Cursor:
         except UnicodeDecodeError:
             import chardet
             for i, raw_data_part in enumerate(raw_data_parts):
+                if isinstance(raw_data_part, unicode):
+                    continue
                 raw_data_parts[i] = \
                     raw_data_part.decode(chardet.detect(
                         raw_data_part).get('encoding'))
