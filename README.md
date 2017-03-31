@@ -27,7 +27,7 @@ connection = pypyodbc.win_create_mdb('D:\\database.mdb')
 
 SQL = 'CREATE TABLE saleout (id COUNTER PRIMARY KEY,product_name VARCHAR(25));'
 connection.cursor().execute(SQL)
-...
+
 
 
 #SQL Server 2000/2005/2008 (and probably 2012 and 2014)
@@ -39,7 +39,7 @@ db_password = 'password'
 connection_string = 'Driver={SQL Server};Server=' + db_host + ';Database=' + db_name + ';UID=' + db_user + ';PWD=' + db_password + ';'
 db = pyodbc.connect(connection_string)
 SQL = 'CREATE TABLE saleout (id COUNTER PRIMARY KEY,product_name VARCHAR(25));'
-connection.cursor().execute(SQL)
+db.cursor().execute(SQL)
 
 # Doing a simple SELECT query
 connStr = (
@@ -72,7 +72,7 @@ while True:
     row = cursor.fetchone()
     if not row:
         break
-    print "Client Full Name (phone number): ", row['client_name'] + ' ' +  row['client_lastname'] + '(' + row['phone number'] + ')'
+    print("Client Full Name (phone number): ", row['client_name'] + ' ' +  row['client_lastname'] + '(' + row['phone number'] + ')')
 
 # Method 2, we obtain dict's all records are loaded at the same time in memory (easy and verbose, but just use it with a few records or your app will consume a lot of memory), was tested in a modern computer with about 1000 - 3000 records just fine...
 import pprint; pp = pprint.PrettyPrinter(indent=4)
