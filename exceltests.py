@@ -63,7 +63,7 @@ class ExcelTestCase(unittest.TestCase):
         self.assertEquals(len(rows), 5)
 
         for index, row in enumerate(rows):
-            self.assertEquals(row.s2num, float(index + 1) * 10)
+            self.assertEquals(row['s2num'], float(index + 1) * 10)
 
     def test_read_range(self):
         # The second method of reading data is to assign a name to a range of cells and access that as a table.
@@ -74,13 +74,13 @@ class ExcelTestCase(unittest.TestCase):
         self.assertEquals(len(rows), 10)
      
         for index, row in enumerate(rows):
-            self.assertEquals(row.num, float(index + 1))
-            self.assertEquals(row.val, chr(ord('a') + index))
+            self.assertEquals(row['num'], float(index + 1))
+            self.assertEquals(row['val'], chr(ord('a') + index))
 
     def test_tables(self):
         # This is useful for figuring out what is available
         
-        tables = [ row.table_name for row in self.cursor.tables() ]
+        tables = [ row['table_name'] for row in self.cursor.tables() ]
         assert 'Sheet2$' in tables, 'tables: %s' % ' '.join(tables)
 
 
