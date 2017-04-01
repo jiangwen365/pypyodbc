@@ -1212,7 +1212,7 @@ class Cursor:
         if not self.connection:
             self.close()
             
-        if type(query_string) == unicode:
+        if isinstance(query_string, unicode):
             c_query_string = wchar_pointer(UCS_buf(query_string))
             ret = ODBC_API.SQLPrepareW(self.stmt_h, c_query_string, len(query_string))
         else:
@@ -1590,7 +1590,7 @@ class Cursor:
                         v = ''.join((sign, left_part,'.', right_part))
                     else:
                         # no decimal
-                        v = ''.join(digit_string , '0'*(0-dec_num))
+                        v = ''.join((digit_string, '0' * (0 - dec_num)))
 
                     if py_v3:
                         c_char_buf = bytes(v,'ascii')
@@ -1652,7 +1652,7 @@ class Cursor:
         self._free_stmt()
         self._last_param_types = None
         self.statement = None
-        if type(query_string) == unicode:
+        if isinstance(query_string, unicode):
             c_query_string = wchar_pointer(UCS_buf(query_string))
             ret = ODBC_API.SQLExecDirectW(self.stmt_h, c_query_string, len(query_string))
         else:
@@ -2035,7 +2035,7 @@ class Cursor:
             
         l_catalog = l_schema = l_table = l_tableType = 0
         
-        if unicode in [type(x) for x in (table, catalog, schema,tableType)]:
+        if any(isinstance(x, unicode) for x in (table, catalog, schema, tableType)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLTablesW
         else:
@@ -2083,7 +2083,7 @@ class Cursor:
             
         l_catalog = l_schema = l_table = l_column = 0
         
-        if unicode in [type(x) for x in (table, catalog, schema,column)]:
+        if any(isinstance(x, unicode) for x in (table, catalog, schema, column)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLColumnsW
         else:
@@ -2128,7 +2128,7 @@ class Cursor:
             
         l_catalog = l_schema = l_table = 0
         
-        if unicode in [type(x) for x in (table, catalog, schema)]:
+        if any(isinstance(x, unicode) for x in (table, catalog, schema)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLPrimaryKeysW
         else:
@@ -2171,7 +2171,7 @@ class Cursor:
             
         l_catalog = l_schema = l_table = l_foreignTable = l_foreignCatalog = l_foreignSchema = 0
         
-        if unicode in [type(x) for x in (table, catalog, schema,foreignTable,foreignCatalog,foreignSchema)]:
+        if any(isinstance(x, unicode) for x in (table, catalog, schema, foreignTable, foreignCatalog, foreignSchema)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLForeignKeysW
         else:
@@ -2221,7 +2221,7 @@ class Cursor:
             self.close()
             
         l_catalog = l_schema = l_procedure = l_column = 0
-        if unicode in [type(x) for x in (procedure, catalog, schema,column)]:
+        if any(isinstance(x, unicode) for x in (procedure, catalog, schema, column)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLProcedureColumnsW
         else:
@@ -2265,7 +2265,7 @@ class Cursor:
             
         l_catalog = l_schema = l_procedure = 0
         
-        if unicode in [type(x) for x in (procedure, catalog, schema)]:
+        if any(isinstance(x, unicode) for x in (procedure, catalog, schema)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLProceduresW
         else:
@@ -2306,7 +2306,7 @@ class Cursor:
             
         l_table = l_catalog = l_schema = 0
         
-        if unicode in [type(x) for x in (table, catalog, schema)]:
+        if any(isinstance(x, unicode) for x in (table, catalog, schema)):
             string_p = lambda x:wchar_pointer(UCS_buf(x))
             API_f = ODBC_API.SQLStatisticsW
         else:
