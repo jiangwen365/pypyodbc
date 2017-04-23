@@ -48,7 +48,7 @@ if py_v3:
     use_unicode = True
 else:
     str_8b = str
-    BYTE_1 = ['1', '\x01']
+    BYTE_1 = '1'
     use_unicode = False
 if py_ver < '2.6':
     bytearray = str
