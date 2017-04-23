@@ -1896,7 +1896,7 @@ class Cursor:
                                 # Bit column type return \x00 for 0,
                                 # but alloc_buffer.value = '' in this case
                                 elif alloc_buffer.value == '' and not \
-                                        alloc_buffer.raw.startswith('\x00'):
+                                                alloc_buffer.raw == '\x00\x00':
                                     value_list.append(None)
                                 else:
                                     # line below fails when chr(0) in result, hence replaced with the active line below
