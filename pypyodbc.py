@@ -48,7 +48,7 @@ if py_v3:
     use_unicode = True
 else:
     str_8b = str
-    BYTE_1 = '1'
+    BYTE_1 = ['1', '\x01']
     use_unicode = False
 if py_ver < '2.6':
     bytearray = str
@@ -646,7 +646,8 @@ SQL_data_type_dict = { \
     SQL_LONGVARBINARY   : (bytearray,           bytearray_cvt,              SQL_C_BINARY,       create_buffer,      20500 ,         True          ),
     SQL_BIGINT          : (long,                long,                       SQL_C_CHAR,         create_buffer,      150   ,         False         ),
     SQL_TINYINT         : (int,                 int,                        SQL_C_CHAR,         create_buffer,      150   ,         False         ),
-    SQL_BIT             : (bool,                lambda x:x == BYTE_1,       SQL_C_CHAR,         create_buffer,      2     ,         False         ),
+    SQL_BIT             : (int,                 lambda x:1 if x in BYTE_1 else 0,
+                           SQL_C_CHAR,         create_buffer,       2     ,        False         ),
     SQL_WCHAR           : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
     SQL_WVARCHAR        : (unicode,             lambda x: x,                SQL_C_WCHAR,        create_buffer_u,    2048  ,         False          ),
     SQL_GUID            : (str,                 str,                        SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
@@ -1242,12 +1243,12 @@ class Cursor:
                     DecimalDigits = c_short()
                     Nullable = c_short()
                     ret = ODBC_API.SQLDescribeParam(
-                            self.stmt_h,
-                            ParameterNumber,
-                            ADDR(DataType),
-                            ADDR(ParameterSize),
-                            ADDR(DecimalDigits),
-                            ADDR(Nullable),
+                        self.stmt_h,
+                        ParameterNumber,
+                        ADDR(DataType),
+                        ADDR(ParameterSize),
+                        ADDR(DecimalDigits),
+                        ADDR(Nullable),
                     )
                     if ret != SQL_SUCCESS:
                         try:
