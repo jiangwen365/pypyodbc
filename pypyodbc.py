@@ -1242,12 +1242,12 @@ class Cursor:
                     DecimalDigits = c_short()
                     Nullable = c_short()
                     ret = ODBC_API.SQLDescribeParam(
-                        self.stmt_h,
-                        ParameterNumber,
-                        ADDR(DataType),
-                        ADDR(ParameterSize),
-                        ADDR(DecimalDigits),
-                        ADDR(Nullable),
+                            self.stmt_h,
+                            ParameterNumber,
+                            ADDR(DataType),
+                            ADDR(ParameterSize),
+                            ADDR(DecimalDigits),
+                            ADDR(Nullable),
                     )
                     if ret != SQL_SUCCESS:
                         try:
@@ -1893,8 +1893,9 @@ class Cursor:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
                                     value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
-                                # Bit column type return \x00 for 0,
+                                # Bit column type return \x00\x00 for 0,
                                 # but alloc_buffer.value = '' in this case
+                                # so we return None instead of 0
                                 elif alloc_buffer.value == '' and not \
                                                 alloc_buffer.raw == '\x00\x00':
                                     value_list.append(None)
