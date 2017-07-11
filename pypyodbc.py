@@ -570,6 +570,7 @@ SQL_SS_VARIANT = -150
 SQL_SS_UDT = -151
 SQL_SS_XML = -152
 SQL_SS_TIME2 = -154
+SQL_SS_TIMESTAMPOFFSET = -155
 
 SQL_C_CHAR =            SQL_CHAR =          1
 SQL_C_NUMERIC =         SQL_NUMERIC =       2
@@ -594,8 +595,16 @@ SQL_DESC_DISPLAY_SIZE = SQL_COLUMN_DISPLAY_SIZE
 def dttm_cvt(x):
     if py_v3:
         x = x.decode('ascii')
-    if x == '': return None
-    else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+    try:
+        if x == '': return None
+        else: return datetime.datetime(int(x[0:4]),int(x[5:7]),int(x[8:10]),int(x[10:13]),int(x[14:16]),int(x[17:19]),int(x[20:].ljust(6,'0')))
+    except Exception as ex:
+        import dateutil.parser
+        try:
+            return dateutil.parser.parse(x)
+        except Exception:
+            # if failed to parse with dateutil raise the original exception
+            raise ex
 
 def tm_cvt(x):
     if py_v3:
@@ -638,6 +647,7 @@ SQL_data_type_dict = { \
     SQL_DATE            : (datetime.date,       dt_cvt,                     SQL_C_CHAR,         create_buffer,      30    ,         False         ),
     SQL_TIME            : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
     SQL_SS_TIME2        : (datetime.time,       tm_cvt,                     SQL_C_CHAR,         create_buffer,      20    ,         False         ),
+    SQL_SS_TIMESTAMPOFFSET : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      35,         False         ),
     SQL_TIMESTAMP       : (datetime.datetime,   dttm_cvt,                   SQL_C_CHAR,         create_buffer,      30    ,         False         ),
     SQL_VARCHAR         : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      2048  ,         False         ),
     SQL_LONGVARCHAR     : (str,                 lambda x: x,                SQL_C_CHAR,         create_buffer,      20500 ,         True          ),
