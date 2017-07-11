@@ -1903,8 +1903,6 @@ class Cursor:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
                                     value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
-                                elif alloc_buffer.value == '':
-                                    value_list.append(None)
                                 else:
                                     # line below fails when chr(0) in result, hence replaced with the active line below
                                     #value_list.append(buf_cvt_func(alloc_buffer.value))
@@ -1939,11 +1937,11 @@ class Cursor:
                 if raw_data_parts != []:
                     if py_v3:
                         if target_type != SQL_C_BINARY:
-                            raw_value = ''.join(raw_data_parts)
+                            raw_value = self.merge_raw_data_parts('', raw_data_parts)
                         else:
-                            raw_value = BLANK_BYTE.join(raw_data_parts)
+                            raw_value = self.merge_raw_data_parts(BLANK_BYTE, raw_data_parts)
                     else:
-                        raw_value = ''.join(raw_data_parts)
+                        raw_value = self.merge_raw_data_parts('', raw_data_parts)
 
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
@@ -1956,6 +1954,22 @@ class Cursor:
                 return None
             else:
                 check_success(self, ret)
+
+    def merge_raw_data_parts(self, char, raw_data_parts):
+        try:
+            return char.join(raw_data_parts)
+
+        except UnicodeDecodeError:
+            import chardet
+            for i, raw_data_part in enumerate(raw_data_parts):
+                if isinstance(raw_data_part, unicode):
+                    continue
+                raw_data_parts[i] = \
+                    raw_data_part.decode(chardet.detect(
+                        raw_data_part).get('encoding'))
+
+        return char.join(raw_data_parts)
+
 
     def __next__(self):
         return self.next()
