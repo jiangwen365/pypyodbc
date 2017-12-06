@@ -12,7 +12,7 @@ Also check out the  [Wiki](https://github.com/jiangwen365/pypyodbc/wiki) and [Ve
 Features
 --------
 
-  * One pure Python script, runs on CPython / IronPython / PyPy , Python 3.3 / 2.4 / 2.5 / 2.6 / 2.7 , Win / Linux , 32 / 64 bit
+  * One pure Python script, runs on CPython / IronPython / PyPy , Python 3.3 / 2.4 / 2.5 / 2.6 / 2.7 , Win / Linux , 32 / 64 bit, now also seems to work on Mac with little effor: https://github.com/jiangwen365/pypyodbc/wiki/How-to-use-pypyodbc-on-MacOS-OSX
   * Almost totally same usage as pyodbc (can be seen as a re-implementation of pyodbc in pure Python via ctypes)
   * Simple - the whole module is implemented in a single python script with less than 3000 lines
   * [Built-in Access MDB file creation and compression functions](https://github.com/jiangwen365/pypyodbc/wiki/Access-MDB-support) on Windows 
