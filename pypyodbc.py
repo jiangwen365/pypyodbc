@@ -1800,7 +1800,7 @@ class Cursor:
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
 
-            col_name = Cname.value.decode('utf-8')
+            col_name = from_buffer_u(Cname)
             if lowercase:
                 col_name = col_name.lower()
             #(name, type_code, display_size,
