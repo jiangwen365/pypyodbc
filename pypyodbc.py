@@ -1956,6 +1956,7 @@ class Cursor:
                 check_success(self, ret)
 
     def merge_raw_data_parts(self, char, raw_data_parts):
+        default_encoder_windows_1252 = 'Windows-1252'
         try:
             return char.join(raw_data_parts)
 
@@ -1964,9 +1965,22 @@ class Cursor:
             for i, raw_data_part in enumerate(raw_data_parts):
                 if isinstance(raw_data_part, unicode):
                     continue
-                raw_data_parts[i] = \
-                    raw_data_part.decode(chardet.detect(
-                        raw_data_part).get('encoding'))
+                encoding = chardet.detect(raw_data_part).get('encoding')
+                if not encoding:
+                    encoding = default_encoder_windows_1252
+                try:
+                    raw_data_parts[i] = \
+                        raw_data_part.decode(encoding)
+                except UnicodeDecodeError:
+                    # According to chardet docs the default encoder is
+                    # windows-1252 but it's not always correct,
+                    # and ISO-8859-1 is it's subset that might work
+                    # http://chardet.readthedocs.io/en/latest/how-it-works.html
+                    if encoding == default_encoder_windows_1252:
+                        encoding = 'ISO-8859-1'
+                        raw_data_parts[i] = raw_data_part.decode(encoding)
+                    else:
+                        raise
 
         return char.join(raw_data_parts)
 
