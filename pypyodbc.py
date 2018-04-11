@@ -1130,7 +1130,8 @@ def get_type(v):
         return ('b',)
     elif isinstance(v, unicode):
         if len(v) >= 255:
-            return  ('U',(len(v)//1000+1)*1000)
+            # use num of chars times 2 since utf-16-le encoding will double the number of bytes needed
+            return  ('U',(len(v)//1000+1)*1000*2)
         else:
             return ('u',)
     elif isinstance(v, (str_8b,str)):
