@@ -1196,7 +1196,7 @@ class Cursor:
         if self.timeout != 0:
             self.set_timeout(self.timeout)
         self._PARAM_SQL_TYPE_LIST = []
-        self.closed = False     
+        self.closed = False
         self.lowercase = lowercase
 
     def set_timeout(self, timeout):
