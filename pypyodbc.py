@@ -1130,7 +1130,8 @@ def get_type(v):
         return ('b',)
     elif isinstance(v, unicode):
         if len(v) >= 255:
-            return  ('U',(len(v)//1000+1)*1000)
+            # use num of chars times 2 since utf-16-le encoding will double the number of bytes needed
+            return  ('U',(len(v)//1000+1)*1000*2)
         else:
             return ('u',)
     elif isinstance(v, (str_8b,str)):
@@ -1296,7 +1297,8 @@ class Cursor:
             if param_types[col_num][0] == 'u':
                 sql_c_type = SQL_C_WCHAR
                 sql_type = SQL_WVARCHAR 
-                buf_size = 255                 
+                # allocate two bytes for each char due to utf-16-le encoding
+                buf_size = 255 * 2
                 ParameterBuffer = create_buffer_u(buf_size)                
                     
             elif param_types[col_num][0] == 's':
