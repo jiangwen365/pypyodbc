@@ -1898,6 +1898,8 @@ class Cursor:
                                 if target_type == SQL_C_BINARY:
                                     value_list.append(buf_cvt_func(alloc_buffer.raw[:used_buf_len.value]))
                                 elif target_type == SQL_C_WCHAR:
+                                    if used_buf_len.value < total_buf_len:
+                                        ctypes.memset(ctypes.addressof(alloc_buffer) + used_buf_len.value, 0, 1)
                                     value_list.append(buf_cvt_func(from_buffer_u(alloc_buffer)))
                                 elif alloc_buffer.value == '':
                                     value_list.append(None)
