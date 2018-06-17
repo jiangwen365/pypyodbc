@@ -27,7 +27,6 @@ apilevel = '2.0'
 paramstyle = 'qmark'
 threadsafety = 1
 version = '1.3.6'
-lowercase=True
 
 DEBUG = 0
 # Comment out all "if DEBUG:" statements like below for production
@@ -1070,7 +1069,7 @@ def NamedTupleRow(cursor):
     """
     from collections import namedtuple
 
-    attr_names = [x[0] for x in cursor._ColBufferList]
+    attr_names = [x[0] for x in cursor.description]
 
     class Row(namedtuple('Row', attr_names, rename=True)):
         cursor_description = cursor.description
@@ -1089,7 +1088,7 @@ def MutableNamedTupleRow(cursor):
     """
     from recordtype import recordtype
 
-    attr_names = [x[0] for x in cursor._ColBufferList]
+    attr_names = [x[0] for x in cursor.description]
 
     class Row(recordtype('Row', attr_names, rename=True)):
         cursor_description = cursor.description
@@ -1170,7 +1169,7 @@ def get_type(v):
 
 # The Cursor Class.
 class Cursor:
-    def __init__(self, conx, row_type_callable=None):
+    def __init__(self, conx, row_type_callable=None, lowercase=True):
         """ Initialize self.stmt_h, which is the handle of a statement
         A statement is actually the basis of a python"cursor" object
         """
@@ -1198,7 +1197,8 @@ class Cursor:
         if self.timeout != 0:
             self.set_timeout(self.timeout)
         self._PARAM_SQL_TYPE_LIST = []
-        self.closed = False      
+        self.closed = False
+        self.lowercase = lowercase
 
     def set_timeout(self, timeout):
         self.timeout = timeout
@@ -1800,7 +1800,7 @@ class Cursor:
                     check_success(self, ret)
             
             col_name = from_buffer_u(Cname)
-            if lowercase:
+            if self.lowercase:
                 col_name = col_name.lower()
             #(name, type_code, display_size, 
 
@@ -2574,11 +2574,11 @@ class Connection:
         self.connected = 1
         
         
-    def cursor(self, row_type_callable=None): 
+    def cursor(self, row_type_callable=None, lowercase=True): 
         #self.settimeout(self.timeout)
         if not self.connected:
             raise ProgrammingError('HY000','Attempt to use a closed connection.')
-        cur = Cursor(self, row_type_callable=row_type_callable) 
+        cur = Cursor(self, row_type_callable=row_type_callable, lowercase=lowercase) 
         # self._cursors.append(cur)
         return cur
 
