@@ -1048,10 +1048,14 @@ def TupleRow(cursor):
         
         def get(self, field):
             if not hasattr(self, 'field_dict'):
-                self.field_dict = {}
-                for i,item in enumerate(self):
-                    self.field_dict[self.cursor_description[i][0]] = item
+                self.field_dict = self.to_dict()
             return self.field_dict.get(field)
+
+        def to_dict(self):
+            return {
+                self.cursor_description[i][0]: item
+                for i, item in enumerate(self)
+            }
             
         def __getitem__(self, field):
             if isinstance(field, (unicode,str)):
