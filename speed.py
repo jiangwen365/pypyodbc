@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
-#                  Let Python load it's ODBC connecting tool pypyodbc
+# A script used to check performance of pypyodbc vs similar other modules, like pyodbc
+# Let Python load it's ODBC connecting tool pypyodbc
 
 from __future__ import print_function
 import os, os.path, time, sys, gc
@@ -18,9 +18,8 @@ if len(sys.argv) < 2:
     print (usage)
     exit()
     
-    
-if sys.argv >= 3:
-    localDir = os.path.dirname(os.path.realpath(sys.argv[0]))
+localDir = os.path.dirname(os.path.realpath(sys.argv[0]))
+if len(sys.argv) >= 3:
     connection_string = sys.argv[2]
     test_mdb = False
 else:
