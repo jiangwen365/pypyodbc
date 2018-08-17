@@ -2006,18 +2006,21 @@ class Cursor:
                     raw_data_parts[i] = \
                         raw_data_part.decode(encoding)
                 except UnicodeDecodeError:
+                    if encoding != default_encoder_windows_1252:
+                        try:
+                            encoding = default_encoder_windows_1252
+                            raw_data_parts[i] = raw_data_part.decode(encoding)
+                            return char.join(raw_data_parts)
+                        except UnicodeDecodeError:
+                            pass
                     # According to chardet docs the default encoder is
                     # windows-1252 but it's not always correct,
                     # and ISO-8859-1 is it's subset that might work
                     # http://chardet.readthedocs.io/en/latest/how-it-works.html
-                    if encoding == default_encoder_windows_1252:
-                        encoding = 'ISO-8859-1'
-                        raw_data_parts[i] = raw_data_part.decode(encoding)
-                    else:
-                        raise
+                    encoding = 'ISO-8859-1'
+                    raw_data_parts[i] = raw_data_part.decode(encoding)
 
         return char.join(raw_data_parts)
-
 
     def __next__(self):
         return self.next()
