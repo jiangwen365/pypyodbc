@@ -1990,37 +1990,45 @@ class Cursor:
                 check_success(self, ret)
 
     def merge_raw_data_parts(self, char, raw_data_parts):
+        # According to chardet docs the default encoder is
+        # windows-1252 but it's not always correct,
+        # and ISO-8859-1 is it's subset that might work
+        # http://chardet.readthedocs.io/en/latest/how-it-works.html
         default_encoder_windows_1252 = 'Windows-1252'
+        default_encoder_ios_8859_1 = 'ISO-8859-1'
+
         try:
             return char.join(raw_data_parts)
 
         except UnicodeDecodeError:
             import chardet
-            for i, raw_data_part in enumerate(raw_data_parts):
+            ud = chardet.UniversalDetector()
+
+            for raw_data_part in raw_data_parts:
                 if isinstance(raw_data_part, unicode):
                     continue
-                encoding = chardet.detect(raw_data_part).get('encoding')
-                if not encoding:
-                    encoding = default_encoder_windows_1252
-                try:
-                    raw_data_parts[i] = \
-                        raw_data_part.decode(encoding)
-                except UnicodeDecodeError:
-                    if encoding != default_encoder_windows_1252:
-                        try:
-                            encoding = default_encoder_windows_1252
-                            raw_data_parts[i] = raw_data_part.decode(encoding)
-                            return char.join(raw_data_parts)
-                        except UnicodeDecodeError:
-                            pass
-                    # According to chardet docs the default encoder is
-                    # windows-1252 but it's not always correct,
-                    # and ISO-8859-1 is it's subset that might work
-                    # http://chardet.readthedocs.io/en/latest/how-it-works.html
-                    encoding = 'ISO-8859-1'
-                    raw_data_parts[i] = raw_data_part.decode(encoding)
+                ud.feed(raw_data_part)
+            encoding = ud.close().get('encoding')
+            if not encoding:
+                encoding = default_encoder_windows_1252
 
-        return char.join(raw_data_parts)
+            encodings_to_try = list(set([encoding,
+                                         default_encoder_windows_1252,
+                                         default_encoder_ios_8859_1]))
+
+            for i, raw_data_part in enumerate(raw_data_parts):
+                for j in xrange(encodings_to_try):
+                    try:
+                        raw_data_parts[i] = raw_data_part.decode(encoding)
+                        break
+
+                    except UnicodeDecodeError:
+                        if j + 1 < len(encodings_to_try):
+                            pass
+                        else:
+                            raise
+
+            return char.join(raw_data_parts)
 
     def __next__(self):
         return self.next()
