@@ -1995,7 +1995,7 @@ class Cursor:
         # and ISO-8859-1 is it's subset that might work
         # http://chardet.readthedocs.io/en/latest/how-it-works.html
         default_encoder_windows_1252 = 'Windows-1252'
-        default_encoder_ios_8859_1 = 'ISO-8859-1'
+        default_encoder_iso_8859_1 = 'ISO-8859-1'
 
         try:
             return char.join(raw_data_parts)
@@ -2009,26 +2009,24 @@ class Cursor:
                     continue
                 ud.feed(raw_data_part)
             encoding = ud.close().get('encoding')
-            if not encoding:
-                encoding = default_encoder_windows_1252
 
-            encodings_to_try = list(set([encoding,
-                                         default_encoder_windows_1252,
-                                         default_encoder_ios_8859_1]))
+            encodings_to_try = [default_encoder_windows_1252,
+                                default_encoder_iso_8859_1]
 
-            for i, raw_data_part in enumerate(raw_data_parts):
-                for j in xrange(encodings_to_try):
-                    try:
-                        raw_data_parts[i] = raw_data_part.decode(encoding)
-                        break
+            if encoding and encoding not in encodings_to_try:
+                encodings_to_try = [encoding] + encodings_to_try
 
-                    except UnicodeDecodeError:
-                        if j + 1 < len(encodings_to_try):
-                            pass
-                        else:
-                            raise
+            ex = None
+            for encoding in encodings_to_try:
+                try:
+                    return char.join(
+                        part.decode(encoding) for part in raw_data_parts
+                    )
 
-            return char.join(raw_data_parts)
+                except UnicodeDecodeError as ex:
+                    pass
+
+            raise ex
 
     def __next__(self):
         return self.next()
