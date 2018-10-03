@@ -2020,7 +2020,9 @@ class Cursor:
             for encoding in encodings_to_try:
                 try:
                     return char.join(
-                        part.decode(encoding) for part in raw_data_parts
+                        part if isinstance(part, unicode)
+                        else part.decode(encoding)
+                        for part in raw_data_parts
                     )
 
                 except UnicodeDecodeError as ex:
