@@ -497,7 +497,11 @@ def UTF16_dec(buffer):
     null_pos = NULLS_REGEX.search(buffer.raw)
     if null_pos:
         up_to = null_pos.start() or -1
-        to_decode = buffer.raw[:up_to + 1]
+        if up_to % 2:
+            to_decode = buffer.raw[:up_to + 1]
+
+        else:
+            to_decode = buffer.raw[:up_to]
 
     else:
         to_decode = buffer.raw
