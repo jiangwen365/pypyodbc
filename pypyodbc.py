@@ -33,7 +33,7 @@ DEBUG = 0
 # Comment out all "if DEBUG:" statements like below for production
 #if DEBUG:print 'DEBUGGING'
 
-import sys, os, datetime, ctypes, threading
+import sys, os, datetime, ctypes, threading, re
 from decimal import Decimal
 
 
@@ -47,6 +47,7 @@ if py_v3:
     buffer = memoryview
     BYTE_1 = bytes('1','ascii')
     use_unicode = True
+    xrange = range
 else:
     str_8b = str
     BYTE_1 = '1'
@@ -488,17 +489,16 @@ def UCS_dec(buffer):
         i += ucs_length
     return ''.join(uchars)
 
+
+NULLS_REGEX = re.compile('\x00\x00')
+
+
 def UTF16_dec(buffer):
-    found_null = False
-    for i in range(1, len(buffer.raw), 2):
-        is_null_byte_pair = (buffer.raw[i - 1] == buffer.raw[i] == '\x00')
-        if is_null_byte_pair:
-            found_null = True
-            break
-    if found_null:
-        # We now decode all the characters in the actual data,
-        # without the garbage
-        to_decode = buffer.raw[:i - 1]
+    null_pos = NULLS_REGEX.search(buffer.raw)
+    if null_pos:
+        up_to = null_pos.start() or -1
+        to_decode = buffer.raw[:up_to + 1]
+
     else:
         to_decode = buffer.raw
 
@@ -1260,7 +1260,7 @@ class Cursor:
                 if ret != SQL_SUCCESS:
                     check_success(self, ret)
 
-                for col_num in range(NumParams.value):
+                for col_num in xrange(NumParams.value):
                     ParameterNumber = ctypes.c_ushort(col_num + 1)
                     DataType = c_short()
                     ParameterSize = ctypes.c_size_t()
@@ -1316,7 +1316,7 @@ class Cursor:
         # Temporary holder since we can only call SQLDescribeParam before
         # calling SQLBindParam.
         temp_holder = []
-        for col_num in range(NumParams.value):
+        for col_num in xrange(NumParams.value):
             dec_num = 0
             buf_size = 512
 
@@ -1742,7 +1742,7 @@ class Cursor:
         NOC = self._NumOfCols()
         self._ColBufferList = []
         bind_data = True
-        for col_num in range(NOC):
+        for col_num in xrange(NOC):
             col_name = self.description[col_num][0]
             col_size = self.description[col_num][2]
             col_sql_data_type = self._ColTypeCodeList[col_num]
@@ -1806,7 +1806,7 @@ class Cursor:
         ColDescr = []
         self._ColTypeCodeList = []
         NOC = self._NumOfCols()
-        for col in range(1, NOC+1):
+        for col in xrange(1, NOC+1):
 
             ret = ODBC_API.SQLColAttribute(self.stmt_h, col, SQL_DESC_DISPLAY_SIZE, ADDR(create_buffer(10)),
                                            10, ADDR(c_short()),ADDR(Cdisp_size))
@@ -1971,11 +1971,11 @@ class Cursor:
                 if raw_data_parts != []:
                     if py_v3:
                         if target_type != SQL_C_BINARY:
-                            raw_value = self.merge_raw_data_parts('', raw_data_parts)
+                            raw_value = merge_raw_data_parts('', raw_data_parts)
                         else:
-                            raw_value = self.merge_raw_data_parts(BLANK_BYTE, raw_data_parts)
+                            raw_value = merge_raw_data_parts(BLANK_BYTE, raw_data_parts)
                     else:
-                        raw_value = self.merge_raw_data_parts('', raw_data_parts)
+                        raw_value = merge_raw_data_parts('', raw_data_parts)
 
                     value_list.append(buf_cvt_func(raw_value))
                 col_num += 1
@@ -1988,47 +1988,6 @@ class Cursor:
                 return None
             else:
                 check_success(self, ret)
-
-    def merge_raw_data_parts(self, char, raw_data_parts):
-        # According to chardet docs the default encoder is
-        # windows-1252 but it's not always correct,
-        # and ISO-8859-1 is it's subset that might work
-        # http://chardet.readthedocs.io/en/latest/how-it-works.html
-        default_encoder_windows_1252 = 'Windows-1252'
-        default_encoder_iso_8859_1 = 'ISO-8859-1'
-
-        try:
-            return char.join(raw_data_parts)
-
-        except UnicodeDecodeError:
-            import chardet
-            ud = chardet.UniversalDetector()
-
-            for raw_data_part in raw_data_parts:
-                if isinstance(raw_data_part, unicode):
-                    continue
-                ud.feed(raw_data_part)
-            encoding = ud.close().get('encoding')
-
-            encodings_to_try = [default_encoder_windows_1252,
-                                default_encoder_iso_8859_1]
-
-            if encoding and encoding not in encodings_to_try:
-                encodings_to_try = [encoding] + encodings_to_try
-
-            ex = None
-            for encoding in encodings_to_try:
-                try:
-                    return char.join(
-                        part if isinstance(part, unicode)
-                        else part.decode(encoding)
-                        for part in raw_data_parts
-                    )
-
-                except UnicodeDecodeError as ex:
-                    pass
-
-            raise ex
 
     def __next__(self):
         return self.next()
@@ -2047,7 +2006,7 @@ class Cursor:
         if not self.connection:
             self.close()
 
-        for i in range(count):
+        for i in xrange(count):
             ret = ODBC_API.SQLFetchScroll(self.stmt_h, SQL_FETCH_NEXT, 0)
             if ret != SQL_SUCCESS:
                 check_success(self, ret)
@@ -2926,3 +2885,45 @@ def monkey_patch_for_gevent():
     for attr in dir(ODBC_API):
         if attr.startswith('SQL') and hasattr(getattr(ODBC_API, attr), 'argtypes'):
             setattr(ODBC_API, attr, monkey_patch(getattr(ODBC_API, attr)))
+
+
+def merge_raw_data_parts(char, raw_data_parts):
+    # According to chardet docs the default encoder is
+    # windows-1252 but it's not always correct,
+    # and ISO-8859-1 is it's subset that might work
+    # http://chardet.readthedocs.io/en/latest/how-it-works.html
+    default_encoder_windows_1252 = 'Windows-1252'
+    default_encoder_iso_8859_1 = 'ISO-8859-1'
+
+    try:
+        return char.join(raw_data_parts)
+
+    except UnicodeDecodeError:
+        import chardet
+        ud = chardet.UniversalDetector()
+
+        for raw_data_part in raw_data_parts:
+            if isinstance(raw_data_part, unicode):
+                continue
+            ud.feed(raw_data_part)
+        encoding = ud.close().get('encoding')
+
+        encodings_to_try = [default_encoder_windows_1252,
+                            default_encoder_iso_8859_1]
+
+        if encoding and encoding not in encodings_to_try:
+            encodings_to_try = [encoding] + encodings_to_try
+
+        ex = None
+        for encoding in encodings_to_try:
+            try:
+                return char.join(
+                    part if isinstance(part, unicode)
+                    else part.decode(encoding)
+                    for part in raw_data_parts
+                )
+
+            except UnicodeDecodeError as ex:
+                pass
+
+        raise ex
