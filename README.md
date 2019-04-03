@@ -27,9 +27,10 @@ connection = pypyodbc.win_create_mdb('D:\\database.mdb')
 
 SQL = 'CREATE TABLE saleout (id COUNTER PRIMARY KEY,product_name VARCHAR(25));'
 connection.cursor().execute(SQL)
+connection.close()
+```
 
-
-
+```python
 #SQL Server 2000/2005/2008 (and probably 2012 and 2014)
 import pypyodbc as pyodbc # you could alias it to existing pyodbc code (not every code is compatible)
 db_host = 'serverhost'
@@ -89,16 +90,18 @@ cursor.close()
 db.close()
 ```
 
+How to use it with out install (the latest version from here)
+--------------------------------------------
+Just copy the latest pypyodbc.py downloaded from this repository on your project folder and import the module.
+
 Install
 -------
 
-If you have pip available:
+If you have pip available (keep in mind that the version on pypi may be old):
 
     pip install pypyodbc
 
 Or get the latest pypyodbc.py script from GitHub (Main Development site) <https://github.com/jiangwen365/pypyodbc>
-
-Double click the setup.py file, or run
 
     python setup.py install
 
