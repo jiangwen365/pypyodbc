@@ -90,7 +90,7 @@ cursor.close()
 db.close()
 ```
 
-How to use it with out install (the latest version from here)
+How to use it without install (the latest version from here)
 --------------------------------------------
 Just copy the latest pypyodbc.py downloaded from this repository on your project folder and import the module.
 
