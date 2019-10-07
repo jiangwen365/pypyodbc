@@ -2438,7 +2438,7 @@ class Connection:
         self.ansi = False
         self.unicode_results = False
         self.dbc_h = ctypes.c_void_p()
-        self.autocommit = autocommit
+        self._autocommit = None
         self.readonly = False
         # the query timeout value
         self.timeout = 0
@@ -2525,17 +2525,8 @@ class Connection:
         else:
             ret = odbc_func(self.dbc_h, 0, c_connectString, len(self.connectString), None, 0, None, SQL_DRIVER_NOPROMPT)
         check_success(self, ret)
-            
-        
-        # Set the connection's attribute of "autocommit" 
-        #
+
         self.autocommit = autocommit
-        
-        if self.autocommit == True:
-            ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER)
-        else:
-            ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, SQL_IS_UINTEGER)
-        check_success(self, ret)
        
         # Set the connection's attribute of "readonly" 
         #
@@ -2550,6 +2541,20 @@ class Connection:
         self.unicode_results = unicode_results
         self.connected = 1
         self.update_db_special_info()
+
+    @property
+    def autocommit(self):
+        return self._autocommit
+
+    @autocommit.setter
+    def autocommit(self, value):
+        """Set the connection's attribute of "autocommit"""
+        if value:
+            ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER)
+        else:
+            ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_OFF, SQL_IS_UINTEGER)
+        check_success(self, ret)
+        self._autocommit = value
         
     def clear_output_converters(self):
         self.output_converter = {}
