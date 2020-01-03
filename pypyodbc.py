@@ -2444,7 +2444,8 @@ class Connection:
         self.timeout = 0
         # self._cursors = []
         for key, value in list(kargs.items()):
-            connectString = connectString + key + '=' + value + ';'
+            if value is not None:
+                connectString = connectString + key + '=' + value + ';'
         self.connectString = connectString
 
         
