@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: New Repository Location
-    url: https://github.com/pypyodbc/pypyodbc/issues
-    about: Please create all issues in the new repository location.
