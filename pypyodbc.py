@@ -2536,9 +2536,6 @@ class Connection:
             ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_ACCESS_MODE, SQL_MODE_READ_ONLY, SQL_IS_UINTEGER)
             check_success(self, ret)
         
-        ret = ODBC_API.SQLSetConnectAttr(self.dbc_h, SQL_ATTR_ACCESS_MODE, self.readonly and SQL_MODE_READ_ONLY or SQL_MODE_READ_WRITE, SQL_IS_UINTEGER)
-        check_success(self, ret)
-        
         self.unicode_results = unicode_results
         self.connected = 1
         self.update_db_special_info()
